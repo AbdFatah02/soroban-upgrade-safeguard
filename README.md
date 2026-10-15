@@ -734,6 +734,8 @@ for how it works.
 |------|--------------|
 | `--metadata-cache-dir <DIR>` | Directory used to cache parsed WASM metadata (decoded XDR, interface hashes, normalized specs), keyed by the WASM content hash and shared across all input sources. |
 | `--no-metadata-cache` | Do not read from or write to the parsed-metadata cache for this run. The WASM is always re-decoded from scratch. |
+| `--metadata-cache-stats` | Print hit, miss, and invalidation counts to stderr after the run. |
+| `--inspect-metadata-cache` | List all entries currently in the parsed-metadata cache and exit. |
 
 The cache directory is resolved in this order, highest precedence first:
 
@@ -756,6 +758,32 @@ soroban-upgrade-safeguard old.wasm new.wasm --no-metadata-cache
 See [Metadata Cache](docs/metadata_cache.md#cache-directory) for the full
 resolution rules and [Environment Variables](docs/environment-variables.md)
 for the other variables the CLI reads.
+
+#### Seeing what the cache is doing
+
+The two inspection flags differ in when they run. `--metadata-cache-stats`
+accompanies a normal comparison: the comparison runs as usual and the cache
+summary is printed to stderr afterward. `--inspect-metadata-cache` replaces
+the comparison: it lists the entries currently in the cache and exits
+without analyzing anything, so it needs no WASM inputs. Both honor
+`--metadata-cache-dir`.
+
+```bash
+# Run a comparison, then print cache counts to stderr
+soroban-upgrade-safeguard old.wasm new.wasm --metadata-cache-stats
+
+# List the cache entries without running a comparison
+soroban-upgrade-safeguard --inspect-metadata-cache
+
+# Inspect a non-default cache directory
+soroban-upgrade-safeguard --inspect-metadata-cache \
+  --metadata-cache-dir .cache/safeguard
+```
+
+See [Metadata Cache](docs/metadata_cache.md#cache-statistics) for an
+example of the output.
+
+#### Clearing the cache
 
 To delete the cache instead of running a comparison:
 
