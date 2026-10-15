@@ -730,6 +730,33 @@ save — skip re-decoding. The cache is shared across every input source
 (local file, HTTPS, OCI, RPC). See [Metadata Cache](docs/metadata_cache.md)
 for how it works.
 
+| Flag | What it does |
+|------|--------------|
+| `--metadata-cache-dir <DIR>` | Directory used to cache parsed WASM metadata (decoded XDR, interface hashes, normalized specs), keyed by the WASM content hash and shared across all input sources. |
+| `--no-metadata-cache` | Do not read from or write to the parsed-metadata cache for this run. The WASM is always re-decoded from scratch. |
+
+The cache directory is resolved in this order, highest precedence first:
+
+1. `--metadata-cache-dir <DIR>`
+2. The `SOROBAN_SAFEGUARD_METADATA_CACHE` environment variable
+3. `$TMPDIR/soroban-upgrade-safeguard/metadata-cache/`
+
+So the flag always wins over the environment variable, and the environment
+variable only applies when the flag is absent. For example, to keep the
+cache inside the project, or to bypass it for one run:
+
+```bash
+# Use a project-local cache directory
+soroban-upgrade-safeguard old.wasm new.wasm --metadata-cache-dir .cache/safeguard
+
+# Always re-decode from scratch
+soroban-upgrade-safeguard old.wasm new.wasm --no-metadata-cache
+```
+
+See [Metadata Cache](docs/metadata_cache.md#cache-directory) for the full
+resolution rules and [Environment Variables](docs/environment-variables.md)
+for the other variables the CLI reads.
+
 To delete the cache instead of running a comparison:
 
 ```bash
