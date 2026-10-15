@@ -21,6 +21,7 @@ This folder contains comprehensive guides for using Soroban Upgrade Safeguard. S
 
 - [**batch_manifests.md**](batch_manifests.md) — Manifest schema for comparing multiple contract pairs, with includes, defaults, and overrides
 - [**config-resolution.md**](config-resolution.md) — How suppression config is resolved from CLI flags, environment variables, and file discovery
+- [**environment-variables.md**](environment-variables.md) — Every environment variable the CLI reads, with its CLI override and default
 - [**compatibility_budgets.md**](compatibility_budgets.md) — Setting bounded limits on finding counts per axis, rule, or globally
 - [**named_policy_profiles.md**](named_policy_profiles.md) — Creating and using named policy profiles for different validation scenarios
 - [**multi_axis_compatibility.md**](multi_axis_compatibility.md) — Understanding and configuring multi-axis compatibility analysis

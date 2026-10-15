@@ -60,6 +60,7 @@ This compares the old build (`v1.wasm`) against the new build (`v2.wasm`) and re
   - [Printing JSON schemas and completion](#printing-json-schemas-and-completion)
   - [Symlinked inputs](#symlinked-inputs)
   - [Fetching inputs over HTTPS](#fetching-inputs-over-https)
+  - [Caching parsed WASM metadata](#caching-parsed-wasm-metadata)
   - [Validating against historical versions (lineage tracking)](#validating-against-historical-versions-lineage-tracking)
   - [Suppressing known breaking changes](#suppressing-known-breaking-changes)
   - [Output format](#output-format)
@@ -719,6 +720,80 @@ sent to a redirect target.
 
 See [Remote HTTPS Inputs](docs/remote-https-inputs.md) for the digest
 format, caching, and error messages.
+
+### Caching parsed WASM metadata
+
+Decoded contract-spec metadata (XDR sections, interface hashes, normalized
+specs) is cached by WASM content hash, so repeated runs over the same
+binary — a CI job re-running on every push, or watch mode firing on each
+save — skip re-decoding. The cache is shared across every input source
+(local file, HTTPS, OCI, RPC). See [Metadata Cache](docs/metadata_cache.md)
+for how it works.
+
+| Flag | What it does |
+|------|--------------|
+| `--metadata-cache-dir <DIR>` | Directory used to cache parsed WASM metadata (decoded XDR, interface hashes, normalized specs), keyed by the WASM content hash and shared across all input sources. |
+| `--no-metadata-cache` | Do not read from or write to the parsed-metadata cache for this run. The WASM is always re-decoded from scratch. |
+| `--metadata-cache-stats` | Print hit, miss, and invalidation counts to stderr after the run. |
+| `--inspect-metadata-cache` | List all entries currently in the parsed-metadata cache and exit. |
+
+The cache directory is resolved in this order, highest precedence first:
+
+1. `--metadata-cache-dir <DIR>`
+2. The `SOROBAN_SAFEGUARD_METADATA_CACHE` environment variable
+3. `$TMPDIR/soroban-upgrade-safeguard/metadata-cache/`
+
+So the flag always wins over the environment variable, and the environment
+variable only applies when the flag is absent. For example, to keep the
+cache inside the project, or to bypass it for one run:
+
+```bash
+# Use a project-local cache directory
+soroban-upgrade-safeguard old.wasm new.wasm --metadata-cache-dir .cache/safeguard
+
+# Always re-decode from scratch
+soroban-upgrade-safeguard old.wasm new.wasm --no-metadata-cache
+```
+
+See [Metadata Cache](docs/metadata_cache.md#cache-directory) for the full
+resolution rules and [Environment Variables](docs/environment-variables.md)
+for the other variables the CLI reads.
+
+#### Seeing what the cache is doing
+
+The two inspection flags differ in when they run. `--metadata-cache-stats`
+accompanies a normal comparison: the comparison runs as usual and the cache
+summary is printed to stderr afterward. `--inspect-metadata-cache` replaces
+the comparison: it lists the entries currently in the cache and exits
+without analyzing anything, so it needs no WASM inputs. Both honor
+`--metadata-cache-dir`.
+
+```bash
+# Run a comparison, then print cache counts to stderr
+soroban-upgrade-safeguard old.wasm new.wasm --metadata-cache-stats
+
+# List the cache entries without running a comparison
+soroban-upgrade-safeguard --inspect-metadata-cache
+
+# Inspect a non-default cache directory
+soroban-upgrade-safeguard --inspect-metadata-cache \
+  --metadata-cache-dir .cache/safeguard
+```
+
+See [Metadata Cache](docs/metadata_cache.md#cache-statistics) for an
+example of the output.
+
+#### Clearing the cache
+
+To delete the cache instead of running a comparison:
+
+```bash
+soroban-upgrade-safeguard --clear-metadata-cache
+```
+
+This deletes the metadata cache directory and exits without analyzing
+anything, printing `Cleared parsed-metadata cache at '<dir>'`. Use
+`--metadata-cache-dir` to select which directory is cleared.
 
 ### Validating against historical versions (lineage tracking)
 
