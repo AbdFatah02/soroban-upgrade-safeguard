@@ -60,6 +60,7 @@ This compares the old build (`v1.wasm`) against the new build (`v2.wasm`) and re
   - [Printing JSON schemas and completion](#printing-json-schemas-and-completion)
   - [Symlinked inputs](#symlinked-inputs)
   - [Fetching inputs over HTTPS](#fetching-inputs-over-https)
+  - [Caching parsed WASM metadata](#caching-parsed-wasm-metadata)
   - [Validating against historical versions (lineage tracking)](#validating-against-historical-versions-lineage-tracking)
   - [Suppressing known breaking changes](#suppressing-known-breaking-changes)
   - [Output format](#output-format)
@@ -719,6 +720,25 @@ sent to a redirect target.
 
 See [Remote HTTPS Inputs](docs/remote-https-inputs.md) for the digest
 format, caching, and error messages.
+
+### Caching parsed WASM metadata
+
+Decoded contract-spec metadata (XDR sections, interface hashes, normalized
+specs) is cached by WASM content hash, so repeated runs over the same
+binary — a CI job re-running on every push, or watch mode firing on each
+save — skip re-decoding. The cache is shared across every input source
+(local file, HTTPS, OCI, RPC). See [Metadata Cache](docs/metadata_cache.md)
+for how it works.
+
+To delete the cache instead of running a comparison:
+
+```bash
+soroban-upgrade-safeguard --clear-metadata-cache
+```
+
+This deletes the metadata cache directory and exits without analyzing
+anything, printing `Cleared parsed-metadata cache at '<dir>'`. Use
+`--metadata-cache-dir` to select which directory is cleared.
 
 ### Validating against historical versions (lineage tracking)
 
