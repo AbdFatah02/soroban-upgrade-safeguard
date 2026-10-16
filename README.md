@@ -151,6 +151,7 @@ flags.
 | `lint` | Checks one contract spec, and optionally a storage schema, for structural problems without comparing it to another build | [Lint rules reference](docs/lint_rules_reference.md) |
 | `preflight` | Checks RPC connectivity and the JSON-RPC response format without fetching any contract code | [RPC security checklist](docs/rpc-security-checklist.md) |
 | `print-schema` | Prints JSON Schemas for reports, configs, manifests, or editor completion | [Printing JSON schemas and completion](#printing-json-schemas-and-completion) |
+| `doctor` | Reports the tool version, enabled features, cache directories, and resolved configuration | [Diagnosing a misbehaving run](#diagnosing-a-misbehaving-run-doctor) |
 
 ### Strict mode
 
@@ -488,6 +489,41 @@ cat ./wasm/v2.wasm | soroban-upgrade-safeguard ./wasm/v1.wasm -
 Only one positional input may be `-`; using `-` for both `OLD_WASM` and
 `NEW_WASM` is rejected because stdin can only be consumed once.
 
+### Applying a signed policy bundle
+
+`--policy-bundle` applies a centrally governed, signed compatibility policy to
+the run. A bundle tightens the rules — it can only raise thresholds or enable
+additional checks, never loosen or disable them. Pass a local path or a
+digest-pinned `https://` URL:
+
+```bash
+soroban-upgrade-safeguard ./wasm/v1.wasm ./wasm/v2.wasm \
+  --policy-bundle ./policy.bundle.json \
+  --trusted-bundle-key ops-team=keys/ops-team.pub
+```
+
+`--trusted-bundle-key` supplies the Ed25519 public key used to verify the
+bundle. It takes an `ID=PATH` form, where `PATH` contains a raw 32-byte public
+key. The flag is **repeatable**: a bundle verifies if any one signature matches
+a key given here, so you can trust multiple signers:
+
+```bash
+soroban-upgrade-safeguard ./wasm/v1.wasm ./wasm/v2.wasm \
+  --policy-bundle ./policy.bundle.json \
+  --trusted-bundle-key ops-team=keys/ops-team.pub \
+  --trusted-bundle-key security-team=keys/security-team.pub
+```
+
+`--policy-bundle` requires at least one `--trusted-bundle-key`. The run is
+rejected before any WASM is loaded if verification fails for any reason: wrong
+payload type, unsupported version, no trusted signature, or an expired bundle.
+The same key material used for `--trusted-key` in attestation verification can
+be reused here — both use the same Ed25519/DSSE mechanism. Policy bundles are
+not yet supported in batch mode (`--manifest` or `--old-dir`/`--new-dir`).
+
+See [Signed Policy Bundles](docs/policy-bundles.md) for the trust model,
+bundle format, precedence rules, and provenance.
+
 ### Validating a single contract spec (lint)
 
 `lint` validates one contract spec, and optionally a storage schema, for graph
@@ -569,6 +605,25 @@ checklist covering endpoint trust, credentials, and report retention.
 
 `--format json` emits a machine-readable summary of the three checks. The
 command exits non-zero when any check fails.
+
+### Diagnosing a misbehaving run (doctor)
+
+`doctor` reports the tool version, enabled Cargo features, cache directory
+paths, and the resolved suppression configuration — all in one place, without
+loading any WASM files or making any network requests. Use it to assemble a
+bug report, to confirm which build is installed, or to check that a cache
+directory or config file is being picked up from the expected location:
+
+```bash
+soroban-upgrade-safeguard doctor
+```
+
+For scripting and CI, `--format json` emits the same information as a
+machine-readable JSON document:
+
+```bash
+soroban-upgrade-safeguard doctor --format json
+```
 
 ### Printing JSON schemas and completion
 
@@ -1546,6 +1601,28 @@ For a stable identifier meant for tooling rather than people — one that surviv
 a name being reworded — use the separate [`id`](docs/batch_manifests.md#pair-ids)
 field.
 
+#### Naming per-contract output files
+
+`--per-contract-output-dir <DIR>` writes one report file per contract into a
+directory. `--per-contract-output-name-template <TEMPLATE>` controls the name
+of each file. The default template is `{name}.{ext}`, which produces files like
+`token.json` or `vault.md`. Three placeholders are supported:
+
+| Placeholder | Expands to |
+|-------------|-----------|
+| `{name}` | The pair's display name (the `name` field, or the `new` build's filename when omitted) |
+| `{id}` | The pair's stable machine identity (the `id` field, or the same as `{name}` when absent) |
+| `{ext}` | The file extension for the selected output format (`json`, `md`, `txt`) |
+
+For example, to write files named `token_report.json` instead of `token.json`:
+
+```bash
+soroban-upgrade-safeguard --manifest release.toml \
+  --format json \
+  --per-contract-output-dir ./reports \
+  --per-contract-output-name-template "{name}_report.{ext}"
+```
+
 #### Capping how many pairs a manifest may contain
 
 [`--max-pairs <N>`](docs/batch_manifests.md#--max-pairs) bounds the total number
@@ -1591,6 +1668,25 @@ soroban-upgrade-safeguard ./wasm/v1.wasm ./wasm/v2.wasm \
 ```
 
 This flag omits only the provenance timestamp field from the report metadata. All other timestamp information (such as build timestamps embedded in the WASM itself) remains unchanged. The normal timestamped behavior is the default and should be used for production workflows where auditability is important.
+
+### Writing a metrics snapshot
+
+`--metrics-file <PATH>` writes an OpenMetrics-format snapshot to a file after
+the run completes:
+
+```bash
+soroban-upgrade-safeguard ./wasm/v1.wasm ./wasm/v2.wasm --metrics-file run.prom
+```
+
+The file is written **atomically** (rename from a temp file in the same
+directory), so a metrics scraper that reads it between runs always sees either
+the previous complete snapshot or the new one — never a partial write. The
+snapshot is also **free of user data**: contract IDs, RPC URLs, file paths, and
+finding messages are never used as label values, so the file is safe to ingest
+into any metrics pipeline without redaction.
+
+See [docs/metrics.md](docs/metrics.md) for the full metric set, label
+conventions, and an example Prometheus scrape configuration.
 
 ### GitHub Action
 
