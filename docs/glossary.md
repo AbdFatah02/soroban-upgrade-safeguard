@@ -109,6 +109,36 @@ The configuration that controls which findings fail a run. Policies can:
 
 **See also:** [Named Policy Profiles](named_policy_profiles.md)
 
+### Compatibility Budget
+A bounded **count** of findings allowed at a given scope, evaluated after
+analysis without changing how any individual finding is classified,
+suppressed, or gated. Where axis gating and `--strict` are boolean ("does
+this kind of finding fail the run?"), a budget is numeric: "how many of
+these are allowed before it does?" — e.g. "at most 3 new events this
+release" or "zero warnings from this specific rule." A budget's scope can be
+`global`, a specific `axis`, or a specific `rule_id`, and a narrower scope
+replaces a broader one for the findings it covers rather than stacking with
+it.
+
+**Configuration location:** `[[budget]]` tables in `.safeguard.toml`,
+alongside any `[[suppress]]` rules.
+
+**Example:**
+```toml
+[[budget]]
+scope  = "axis"
+axis   = "event_indexer"
+metric = "raw"
+limit  = 3
+```
+
+An exceeded budget is reported separately from ordinary findings as a
+`BudgetViolation`, and **always fails the run** — independent of `--strict`
+and axis gating — since a configured budget is an explicit opt-in a team
+chose rather than a default.
+
+**See also:** [Compatibility Budgets](compatibility_budgets.md)
+
 ## Report Elements
 
 ### Provenance
@@ -131,6 +161,32 @@ A committed JSON snapshot of a contract's exported interface. CI validates that 
 **Generate with:** `soroban-upgrade-safeguard lockfile <WASM> --output contract.interface.lock.json`
 
 **See also:** [Pinning an interface with a lockfile](../README.md#pinning-an-interface-with-a-lockfile)
+
+### Attestation
+A signed, versioned in-toto statement — wrapped in a DSSE envelope — that
+cryptographically binds an analysis run to its inputs and verdict. It
+records the tool version, the old and new WASM and extracted-spec digests,
+storage schema digests, resolved policy, the report digest, and both
+directional call-ABI verdicts, so a report's provenance can be verified
+offline by someone who received the envelope, the public key, and the
+artifacts, but didn't run the comparison themselves.
+
+**Generate with:**
+```bash
+soroban-upgrade-safeguard attest report.json \
+  --old-wasm old.wasm --new-wasm new.wasm \
+  --private-key signing-key.pk8 --key-id release-key \
+  --output report.dsse.json
+```
+
+**Verify with:**
+```bash
+soroban-upgrade-safeguard verify-attestation report.dsse.json \
+  --trusted-key release-key=public-key.raw \
+  --report report.json --old-wasm old.wasm --new-wasm new.wasm
+```
+
+**See also:** [Signed safeguard attestations](attestations.md)
 
 ## Historical Tracking
 

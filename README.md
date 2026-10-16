@@ -1628,6 +1628,7 @@ More detailed guides live in the [docs](docs/) folder. See the [Documentation In
 - [Capability Reference](docs/capability-reference.md): Soroban protocol capabilities used to classify host import changes.
 - [Batch Manifests](docs/batch_manifests.md): the manifest schema, composing manifests with `include`, shared `[defaults]`, per-pair overrides, precedence, and resolution provenance.
 - [Contributing](docs/contributing.md): development setup, project structure, testing, and how to add new detection rules.
+- [Semantic Versioning & Public API Policy](docs/semver_policy.md): what counts as a breaking change to the tool's own public API, the curated stable surface, and the deprecation policy.
 - [Signed Attestations](docs/attestations.md): DSSE signing, the in-toto predicate, offline verification, and security guidance.
 - [RPC Security Checklist](docs/rpc-security-checklist.md): operational checklist for endpoint trust, HTTPS, expected-hash pinning, credentials, and report retention when fetching a baseline over RPC.
 - [Remote HTTPS Inputs](docs/remote-https-inputs.md): fetching WASM and spec inputs over HTTPS with digest verification, fetch limits, and caching.

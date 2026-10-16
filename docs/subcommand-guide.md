@@ -110,10 +110,66 @@ See [Signed Attestations](attestations.md).
 Runs in JSON Lines batch mode: reads one comparison job per line on stdin, writes one result per line to stdout. Use it when a build pipeline needs to drive many comparisons programmatically without shelling out once per pair.
 
 ```bash
-echo '{"old":"v1.wasm","new":"v2.wasm"}' | soroban-upgrade-safeguard stream
+echo '{"schema_version":1,"id":"job-1","old":{"local":"v1.wasm"},"new":{"local":"v2.wasm"}}' \
+  | soroban-upgrade-safeguard stream
 ```
 
-See `soroban-upgrade-safeguard stream --help` for the input and output schemas.
+`--help` only documents the CLI flags (`--concurrency`, `--input-order`,
+`--strict`, `--config`, …), not the job/result JSON shape — that's defined
+here instead.
+
+#### Job shape (`schema_version: 1`)
+
+```json
+{
+  "schema_version": 1,
+  "id": "job-42",
+  "old": { "local": "/path/to/old.wasm" },
+  "new": { "local": "/path/to/new.wasm" },
+  "overrides": { "strict": true }
+}
+```
+
+- `id` — a caller-provided identifier, echoed back on the result. A duplicate
+  `id` within the same stream is rejected rather than processed twice.
+- `old` / `new` — an **input descriptor**: a single-key object naming
+  exactly one source.
+- `overrides` — optional, per-job analysis overrides: `strict`, `explain`,
+  `ascii`, `empirical`, `suppression_config` (a path). All mirror their
+  CLI-flag equivalents and default to off/unset.
+
+| Descriptor  | Shape                                               |
+| ----------- | ---------------------------------------------------- |
+| `local`     | `{ "local": "/path/to/file.wasm" }`                   |
+| `rpc`       | `{ "rpc": { "url": "...", "contract_id": "C…", "headers": [] } }` |
+| `hash`      | `{ "hash": { "path": "...", "sha256": "<hex>" } }`    |
+| `extracted` | `{ "extracted": "/path/to/spec.json" }` (old side only) |
+| `remote`    | `{ "remote": "https://…#sha256=<hex>" }`              |
+
+A job missing a recognized descriptor key on `old`/`new` — like the
+`{"old":"v1.wasm","new":"v2.wasm"}` shape this guide used to show — fails to
+parse with a `"status":"malformed"` result naming the unknown variant,
+because a bare string isn't one of the five descriptors above.
+
+#### Result shape (`schema_version: 1`)
+
+```json
+{
+  "schema_version": 1,
+  "id": "job-42",
+  "status": "success",
+  "report": { "...": "the same JSON shape as --format json" },
+  "elapsed_ms": 123
+}
+```
+
+`status` is one of `success`, `failure`, `duplicate`, or `malformed`.
+`report` is present only on `success`; an `error` string field (omitted
+above) is present instead on `failure`, `duplicate`, and `malformed`.
+
+The full schema, including every field's doc comment, lives in the
+[`jsonl` module-level documentation](../src/jsonl.rs) — read that if this
+summary doesn't cover the case you're hitting.
 
 ### `lint`
 
