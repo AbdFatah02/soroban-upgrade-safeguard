@@ -60,6 +60,7 @@ This compares the old build (`v1.wasm`) against the new build (`v2.wasm`) and re
   - [Printing JSON schemas and completion](#printing-json-schemas-and-completion)
   - [Symlinked inputs](#symlinked-inputs)
   - [Fetching inputs over HTTPS](#fetching-inputs-over-https)
+  - [Fetching inputs from an OCI registry](#fetching-inputs-from-an-oci-registry)
   - [Caching parsed WASM metadata](#caching-parsed-wasm-metadata)
   - [Validating against historical versions (lineage tracking)](#validating-against-historical-versions-lineage-tracking)
   - [Suppressing known breaking changes](#suppressing-known-breaking-changes)
@@ -709,9 +710,18 @@ soroban-upgrade-safeguard ./wasm/v1.wasm \
   --remote-max-redirects 0
 ```
 
-Verified downloads are cached by digest, so the limits apply only when an
-artifact is actually downloaded. A cache hit skips the network entirely. To
-make every run download again, pass `--no-remote-cache`.
+Verified downloads are cached content-addressed by digest, so the limits
+apply only when an artifact is actually downloaded, and a re-run reuses the
+bytes instead of re-fetching them:
+
+- `--remote-cache-dir <DIR>` sets the cache location, overriding the
+  `SOROBAN_SAFEGUARD_REMOTE_CACHE` environment variable and the default (a
+  `soroban-upgrade-safeguard/remote-cache` directory under the OS temp dir).
+- `--no-remote-cache` bypasses reading and writing the cache for a single
+  run, without deleting anything already cached.
+- `--clear-remote-cache` deletes every cached artifact under the cache
+  directory and exits without running a comparison.
+
 `--show-config` prints the limits that are in effect, under `remote_fetch.*`,
 with `default` or `cli` next to each value to show where it came from. The
 following protections can't be turned off with any flag: every redirect
@@ -720,6 +730,44 @@ sent to a redirect target.
 
 See [Remote HTTPS Inputs](docs/remote-https-inputs.md) for the digest
 format, caching, and error messages.
+
+### Fetching inputs from an OCI registry
+
+You can also pass an `oci://` reference anywhere the tool accepts a local
+WASM or spec path, so a release pipeline that publishes contract artifacts
+to an OCI-compatible registry doesn't need a separate pull-and-verify step:
+
+```bash
+soroban-upgrade-safeguard old.wasm \
+  "oci://ghcr.io/example/contracts@sha256:3b1a2c9e4d5f60718293847566172839405162738495061728394051627384"
+```
+
+A pinned `@sha256:<hex>` digest is required by default — the manifest is
+verified against it before anything downstream is trusted. Pass
+`--allow-oci-tags` to allow an `oci://` input to reference a mutable tag
+(e.g. `oci://ghcr.io/example/contracts:v1.2.3`) instead; the resolved digest
+is printed so the reference can be pinned afterward. Off by default.
+
+Every fetch is limited in size and time:
+
+| Flag | Default | What it limits |
+|------|---------|----------------|
+| `--oci-max-bytes <BYTES>` | `67108864` (64 MiB) | Maximum bytes accepted for any `oci://` manifest or layer download. |
+| `--oci-timeout-secs <SECONDS>` | `30` | Timeout, in seconds, for any single `oci://` registry request. |
+
+Verified layers are cached content-addressed by digest, so a re-run skips
+the blob download:
+
+- `--oci-cache-dir <DIR>` sets the cache location, overriding the
+  `SOROBAN_SAFEGUARD_OCI_CACHE` environment variable and the default (a
+  `soroban-upgrade-safeguard/oci-cache` directory under the OS temp dir).
+- `--no-oci-cache` bypasses reading and writing the cache for a single run,
+  without deleting anything already cached.
+- `--clear-oci-cache` deletes every cached `oci://` artifact under the
+  cache directory and exits without running a comparison.
+
+See [OCI registry inputs](docs/documentation.md#oci-registry-inputs) for
+the full reference syntax, layer selection, and registry authentication.
 
 ### Caching parsed WASM metadata
 
