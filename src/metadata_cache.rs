@@ -174,7 +174,7 @@ pub struct CachedMetadata {
     /// but preserved here for cheap read-side integrity checks without having
     /// to re-hash the source bytes).
     pub content_sha256: String,
-    /// JSON-serialized `Vec<stellar_xdr::curr::ScSpecEntry>` as produced by
+    /// JSON array of base64-encoded XDR `ScSpecEntry` values as produced by
     /// the decoder registry.
     pub spec_entries_json: String,
     /// The interface version, if present in the WASM.
@@ -403,8 +403,8 @@ pub fn store(cache_dir: &Path, key: &CacheKey, entry: &CachedMetadata, no_cache:
 
 /// Build a [`CachedMetadata`] from the raw components produced by the parser.
 ///
-/// `spec_entries_json` should be the JSON serialization of the decoded
-/// `Vec<ScSpecEntry>` (use `serde_json::to_string`).
+/// `spec_entries_json` should be a JSON array of the base64-encoded XDR of
+/// the decoded `ScSpecEntry` values (see [`extract_with_cache`]).
 pub fn build_entry(
     key: &CacheKey,
     spec_entries_json: String,
@@ -550,6 +550,58 @@ impl CachedExtractOutcome {
     pub fn was_cache_hit(&self) -> bool {
         matches!(self, Self::CacheHit(_))
     }
+}
+
+/// Decode `bytes` through the metadata cache.
+///
+/// Looks up `content_sha256` in the cache; on a hit the stored entry is
+/// returned, otherwise the WASM is decoded and the result is written back
+/// (unless `config.no_cache` is set). `stats` records the lookup outcome.
+///
+/// `spec_entries_json` is stored as a JSON array of base64-encoded XDR
+/// `ScSpecEntry` values.
+pub fn extract_with_cache(
+    config: &MetadataCacheConfig,
+    content_sha256: &str,
+    bytes: &[u8],
+    stats: &mut CacheStats,
+) -> Result<CachedExtractOutcome, String> {
+    use stellar_xdr::curr::{Limits, WriteXdr};
+
+    let cache_dir = config.resolved_cache_dir();
+    let key = CacheKey::new(content_sha256, CacheIdentity::default());
+
+    if let CacheLookup::Hit(entry) = lookup(&cache_dir, &key, config.no_cache, stats) {
+        return Ok(CachedExtractOutcome::CacheHit(entry));
+    }
+
+    let metadata = crate::parser::extract_metadata(bytes).map_err(|e| e.to_string())?;
+    let encoded = metadata
+        .spec
+        .iter()
+        .map(|entry| entry.to_xdr_base64(Limits::none()))
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|e| e.to_string())?;
+    let spec_entries_json = serde_json::to_string(&encoded).map_err(|e| e.to_string())?;
+    let interface_hash = crate::spec::ContractSpec::from_entries(&metadata.spec)
+        .interface_hash()
+        .to_hex();
+    let entry = build_entry(
+        &key,
+        spec_entries_json,
+        metadata
+            .env_meta
+            .as_ref()
+            .and_then(|meta| meta.interface_version()),
+        metadata.spec_version_verified,
+        interface_hash,
+    );
+
+    if config.no_cache {
+        return Ok(CachedExtractOutcome::ComputedNocache(entry));
+    }
+    store(&cache_dir, &key, &entry, false);
+    Ok(CachedExtractOutcome::Computed(entry))
 }
 
 // ---------------------------------------------------------------------------
