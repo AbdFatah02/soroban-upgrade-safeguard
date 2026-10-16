@@ -2813,6 +2813,11 @@ fn main() -> Result<()> {
     }
 
     let result = run_single(&args, &outputs, &suppressions, &progress);
+    metrics.record_verdict(match &result {
+        Ok(true) => soroban_upgrade_safeguard::metrics::VerdictLabel::Safe,
+        Ok(false) => soroban_upgrade_safeguard::metrics::VerdictLabel::Unsafe,
+        Err(_) => soroban_upgrade_safeguard::metrics::VerdictLabel::Error,
+    });
     metrics.duration_total_seconds.record(run_start.elapsed());
     if let Some(ref path) = args.metrics_file {
         if let Err(e) = soroban_upgrade_safeguard::metrics::write_metrics_file(&metrics, path) {
