@@ -19,7 +19,7 @@ re-parsed.
 
 | Field | Description |
 |---|---|
-| `spec_entries_json` | JSON-serialized `Vec<ScSpecEntry>` from the decoder registry |
+| `spec_entries_json` | JSON array of base64-encoded XDR `ScSpecEntry` values from the decoder registry |
 | `interface_version` | Packed `u64` from `contractenvmetav0`, if present |
 | `spec_version_verified` | Whether the spec was decoded through the versioned registry |
 | `interface_hash` | SHA-256 hex of the normalized spec interface |
@@ -55,6 +55,9 @@ The default cache directory is resolved in this order:
 All input sources share the same cache directory: local files, `https://`,
 `oci://`, Soroban RPC, batch manifests, and watch mode all read from and
 write to the same location, maximizing hit rates across workflows.
+
+> **Current scope:** local WASM file inputs read from and write to the cache.
+> Other input kinds (stdin, `https://`, `oci://`, RPC) do not yet use it.
 
 ## CLI Flags
 

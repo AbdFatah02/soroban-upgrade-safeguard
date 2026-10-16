@@ -28,9 +28,9 @@ All metric names are prefixed with `soroban_safeguard_`.
 
 | Metric | Type | Description |
 |--------|------|-------------|
-| `soroban_safeguard_pairs_total_total` | counter | Total contract-pair analysis attempts in this run |
-| `soroban_safeguard_pairs_success_total_total` | counter | Pairs that completed without an internal error |
-| `soroban_safeguard_pairs_error_total_total` | counter | Pairs that failed with an internal error |
+| `soroban_safeguard_pairs_total` | counter | Total contract-pair analysis attempts in this run |
+| `soroban_safeguard_pairs_success_total` | counter | Pairs that completed without an internal error |
+| `soroban_safeguard_pairs_error_total` | counter | Pairs that failed with an internal error |
 
 ### Findings
 
@@ -122,7 +122,7 @@ soroban_safeguard_rpc_attempts_total{result="<r>"} <n>
 ### Watch mode
 
 ```
-soroban_safeguard_watch_cycles_total_total <n>
+soroban_safeguard_watch_cycles_total <n>
 ```
 
 Number of watch-mode re-analysis cycles triggered by filesystem events. Only
@@ -131,7 +131,7 @@ emitted in watch mode runs.
 ### Resource limits
 
 ```
-soroban_safeguard_resource_limit_hits_total_total <n>
+soroban_safeguard_resource_limit_hits_total <n>
 ```
 
 Number of times a configured resource limit (WASM size, complexity budget) was
@@ -179,33 +179,33 @@ major version bump. New metrics may be added in minor versions.
 ## Example output
 
 ```
-# HELP soroban_safeguard_pairs_total Total number of contract-pair analysis attempts in this run.
-# TYPE soroban_safeguard_pairs_total counter
-soroban_safeguard_pairs_total_total 1
-# HELP soroban_safeguard_pairs_success_total Contract-pair analyses that completed without an error.
-# TYPE soroban_safeguard_pairs_success_total counter
-soroban_safeguard_pairs_success_total_total 1
-# HELP soroban_safeguard_pairs_error_total Contract-pair analyses that failed with an internal error.
-# TYPE soroban_safeguard_pairs_error_total counter
-soroban_safeguard_pairs_error_total_total 0
-# HELP soroban_safeguard_findings_total Finding counts by severity, axis, and outcome. Labels are drawn from closed enumerations; no user data appears as a label value.
-# TYPE soroban_safeguard_findings_total counter
+# HELP soroban_safeguard_pairs Total number of contract-pair analysis attempts in this run.
+# TYPE soroban_safeguard_pairs counter
+soroban_safeguard_pairs_total 1
+# HELP soroban_safeguard_pairs_success Contract-pair analyses that completed without an error.
+# TYPE soroban_safeguard_pairs_success counter
+soroban_safeguard_pairs_success_total 1
+# HELP soroban_safeguard_pairs_error Contract-pair analyses that failed with an internal error.
+# TYPE soroban_safeguard_pairs_error counter
+soroban_safeguard_pairs_error_total 0
+# HELP soroban_safeguard_findings Finding counts by severity, axis, and outcome. Labels are drawn from closed enumerations; no user data appears as a label value.
+# TYPE soroban_safeguard_findings counter
 soroban_safeguard_findings_total{severity="critical",axis="storage_layout",outcome="active"} 2
 soroban_safeguard_findings_total{severity="warning",axis="call_abi",outcome="suppressed"} 1
-# HELP soroban_safeguard_cache_lookups_total Metadata-cache lookups by result.
-# TYPE soroban_safeguard_cache_lookups_total counter
+# HELP soroban_safeguard_cache_lookups Metadata-cache lookups by result.
+# TYPE soroban_safeguard_cache_lookups counter
 soroban_safeguard_cache_lookups_total{result="hit"} 0
 soroban_safeguard_cache_lookups_total{result="miss"} 0
 soroban_safeguard_cache_lookups_total{result="invalidated"} 0
-# HELP soroban_safeguard_rpc_attempts_total RPC baseline-fetch attempts by result.
-# TYPE soroban_safeguard_rpc_attempts_total counter
+# HELP soroban_safeguard_rpc_attempts RPC baseline-fetch attempts by result.
+# TYPE soroban_safeguard_rpc_attempts counter
 soroban_safeguard_rpc_attempts_total{result="success"} 0
 soroban_safeguard_rpc_attempts_total{result="transport_error"} 0
 soroban_safeguard_rpc_attempts_total{result="protocol_error"} 0
 soroban_safeguard_rpc_attempts_total{result="timeout"} 0
 soroban_safeguard_rpc_attempts_total{result="hash_mismatch"} 0
-# HELP soroban_safeguard_run_duration_seconds_total Total wall-clock time of the analysis run.
-# TYPE soroban_safeguard_run_duration_seconds_total counter
+# HELP soroban_safeguard_run_duration_seconds Total wall-clock time of the analysis run.
+# TYPE soroban_safeguard_run_duration_seconds counter
 soroban_safeguard_run_duration_seconds_total 0.123456789
 # EOF
 ```

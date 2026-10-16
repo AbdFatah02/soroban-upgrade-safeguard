@@ -2813,6 +2813,11 @@ fn main() -> Result<()> {
     }
 
     let result = run_single(&args, &outputs, &suppressions, &progress);
+    metrics.record_verdict(match &result {
+        Ok(true) => soroban_upgrade_safeguard::metrics::VerdictLabel::Safe,
+        Ok(false) => soroban_upgrade_safeguard::metrics::VerdictLabel::Unsafe,
+        Err(_) => soroban_upgrade_safeguard::metrics::VerdictLabel::Error,
+    });
     metrics.duration_total_seconds.record(run_start.elapsed());
     if let Some(ref path) = args.metrics_file {
         if let Err(e) = soroban_upgrade_safeguard::metrics::write_metrics_file(&metrics, path) {
@@ -4306,6 +4311,8 @@ fn run_single(
             eprintln!("metadata-cache: active, dir='{}'", mc_dir.display());
         }
 
+        let mut mc_stats = soroban_upgrade_safeguard::metadata_cache::CacheStats::default();
+
         let new = load_wasm_input(
             new_wasm_path,
             &remote_config,
@@ -4313,6 +4320,7 @@ fn run_single(
             args.no_symlinks,
             progress,
         )?;
+        use_metadata_cache(new_wasm_path, &new, &mc_config, &mut mc_stats);
 
         let mut store_opt = if let Some(ref path) = args.lineage_store {
             let mut store = if path.exists() {
@@ -4386,13 +4394,15 @@ fn run_single(
                         .with_id_mismatch_allowed(args.rpc_allow_id_mismatch),
                 )?
             } else {
-                load_wasm_input(
+                let old = load_wasm_input(
                     &args.wasm_paths[0],
                     &remote_config,
                     &oci_config,
                     args.no_symlinks,
                     progress,
-                )?
+                )?;
+                use_metadata_cache(&args.wasm_paths[0], &old, &mc_config, &mut mc_stats);
+                old
             };
 
             // `--expected-wasm-hash` pins the baseline's exact bytes. Checked
@@ -4433,6 +4443,10 @@ fn run_single(
             )?
             .with_symlinks(old.symlink.clone(), new.symlink.clone())
         };
+
+        if mc_config.print_stats {
+            mc_stats.print_summary();
+        }
 
         if let (Some(ref mut store), Some(ref version_id), Some(ref path)) =
             (&mut store_opt, &args.record_version, &args.lineage_store)
@@ -5128,6 +5142,33 @@ fn load_wasm_input(
         ));
     }
     Ok(module)
+}
+
+/// Look up a locally loaded WASM in the metadata cache and, on a miss, decode
+/// it and store the result.
+///
+/// Only local file inputs take part for now: stdin, `https://` and `oci://`
+/// inputs are skipped. The cache is advisory, so a decode failure here is
+/// ignored; the analysis itself reports it with full context.
+fn use_metadata_cache(
+    path: &Path,
+    module: &loader::WasmModule,
+    config: &soroban_upgrade_safeguard::metadata_cache::MetadataCacheConfig,
+    stats: &mut soroban_upgrade_safeguard::metadata_cache::CacheStats,
+) {
+    let text = path.to_string_lossy();
+    let is_local = !is_stdin_wasm_path(path)
+        && !matches!(RemoteRef::parse(&text), Ok(Some(_)))
+        && !matches!(OciReference::parse(&text), Ok(Some(_)));
+    if !is_local {
+        return;
+    }
+    let _ = soroban_upgrade_safeguard::metadata_cache::extract_with_cache(
+        config,
+        &module.sha256,
+        &module.bytes,
+        stats,
+    );
 }
 
 /// One pair the batch loop is about to run, with the settings it runs under.
