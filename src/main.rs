@@ -768,15 +768,15 @@ struct Args {
     lineage_store: Option<PathBuf>,
 
     /// Record candidate build as a new version in the lineage store with this tag.
-    #[arg(long, value_name = "VERSION_ID")]
+    #[arg(long, value_name = "VERSION_ID", requires = "lineage_store")]
     record_version: Option<String>,
 
     /// Mark an existing historical version as retired in the lineage store.
-    #[arg(long, value_name = "VERSION_ID")]
+    #[arg(long, value_name = "VERSION_ID", requires = "lineage_store")]
     retire_version: Option<String>,
 
     /// Maximum live historical versions to validate candidate against.
-    #[arg(long, value_name = "N")]
+    #[arg(long, value_name = "N", requires = "lineage_store")]
     max_live_versions: Option<usize>,
 
     /// Write an OpenMetrics-format metrics snapshot to this file after the

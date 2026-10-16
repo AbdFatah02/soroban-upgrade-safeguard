@@ -967,8 +967,10 @@ soroban-upgrade-safeguard ./wasm/v1.wasm ./wasm/v2.wasm \
   --record-version v2.0.0
 ```
 
-`--record-version` requires `--lineage-store` — without it, the flag is
-accepted but has nothing to write to, so it's a silent no-op. Recording
+`--record-version` requires `--lineage-store` — without it, the flag has
+nothing to write to, so the command is rejected with a usage error (exit code
+`2`) naming `--lineage-store`. `--retire-version` and `--max-live-versions`
+are rejected the same way. Recording
 happens **after** the comparison completes and is not gated on the verdict:
 a candidate that fails the comparison is still recorded if you asked for it,
 so a rejected build doesn't silently vanish from the history the next
@@ -991,8 +993,8 @@ soroban-upgrade-safeguard ./wasm/v1.wasm ./wasm/v2.wasm \
   --retire-version v1.0.0
 ```
 
-Like `--record-version`, it requires `--lineage-store` and is otherwise a
-silent no-op — and retiring a `<VERSION_ID>` that isn't in the store is *also*
+Like `--record-version`, it requires `--lineage-store` and is otherwise rejected
+as a usage error — and retiring a `<VERSION_ID>` that isn't in the store is
 a silent no-op rather than an error, so a typo won't fail your run but won't
 retire anything either. Retiring happens **before** validation, so the
 version is already excluded from that same run's lineage check.
