@@ -102,10 +102,16 @@ fn build_request(options: Option<CompareJsOptions>) -> Result<CompareRequest, Sa
     let schema_pair = match (options.old_storage_schema, options.new_storage_schema) {
         (Some(old_src), Some(new_src)) => {
             let old_fmt = parse_schema_format(
-                options.old_storage_schema_format.as_deref().unwrap_or("toml"),
+                options
+                    .old_storage_schema_format
+                    .as_deref()
+                    .unwrap_or("toml"),
             )?;
             let new_fmt = parse_schema_format(
-                options.new_storage_schema_format.as_deref().unwrap_or("toml"),
+                options
+                    .new_storage_schema_format
+                    .as_deref()
+                    .unwrap_or("toml"),
             )?;
             (
                 Some(SchemaSource {
@@ -119,11 +125,9 @@ fn build_request(options: Option<CompareJsOptions>) -> Result<CompareRequest, Sa
             )
         }
         (None, None) => (None, None),
-        _ => {
-            return Err(SafeguardCoreError::invalid_input(
-                "old_storage_schema and new_storage_schema must be supplied together, or not at all",
-            ))
-        }
+        _ => return Err(SafeguardCoreError::invalid_input(
+            "old_storage_schema and new_storage_schema must be supplied together, or not at all",
+        )),
     };
 
     Ok(CompareRequest {
@@ -139,8 +143,9 @@ fn build_request(options: Option<CompareJsOptions>) -> Result<CompareRequest, Sa
 fn report_to_json(
     report: &soroban_upgrade_safeguard::SafetyReport,
 ) -> Result<serde_json::Value, SafeguardCoreError> {
-    serde_json::to_value(report.to_json())
-        .map_err(|e| SafeguardCoreError::integrity(format!("Failed to convert report to JSON: {e}")))
+    serde_json::to_value(report.to_json()).map_err(|e| {
+        SafeguardCoreError::integrity(format!("Failed to convert report to JSON: {e}"))
+    })
 }
 
 /// Compare two Soroban contract builds given as raw WASM bytes.

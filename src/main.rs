@@ -5376,8 +5376,7 @@ fn compare_contracts(
             &diff_report.findings,
             suppressions,
             None,
-            old_build,
-            new_build,
+            (old_build, new_build),
             &soroban_upgrade_safeguard::impact_graph::GraphLimits::default(),
         ));
     }

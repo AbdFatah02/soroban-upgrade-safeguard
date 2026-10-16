@@ -56,15 +56,16 @@ pub fn load_empirical_snapshot(
             source: Some(Box::new(e)),
         })?;
 
-    let manifest: Option<SnapshotManifest> = match val.get("manifest") {
-        Some(m) => Some(serde_json::from_value(m.clone()).map_err(|e| {
-            crate::error::Error::Integrity {
-                details: format!("Failed to parse snapshot manifest: {}", e),
-                source: Some(Box::new(e)),
-            }
-        })?),
-        None => None,
-    };
+    let manifest: Option<SnapshotManifest> =
+        match val.get("manifest") {
+            Some(m) => Some(serde_json::from_value(m.clone()).map_err(|e| {
+                crate::error::Error::Integrity {
+                    details: format!("Failed to parse snapshot manifest: {}", e),
+                    source: Some(Box::new(e)),
+                }
+            })?),
+            None => None,
+        };
 
     let mut raw_strings = Vec::new();
     if let Some(arr) = val.as_array() {

@@ -78,12 +78,10 @@ fn build_request(
 ) -> PyResult<CompareRequest> {
     let schema_pair = match (old_storage_schema, new_storage_schema) {
         (Some(old_src), Some(new_src)) => {
-            let old_fmt = parse_schema_format(
-                old_storage_schema_format.as_deref().unwrap_or("toml"),
-            )?;
-            let new_fmt = parse_schema_format(
-                new_storage_schema_format.as_deref().unwrap_or("toml"),
-            )?;
+            let old_fmt =
+                parse_schema_format(old_storage_schema_format.as_deref().unwrap_or("toml"))?;
+            let new_fmt =
+                parse_schema_format(new_storage_schema_format.as_deref().unwrap_or("toml"))?;
             (
                 Some(SchemaSource {
                     source: old_src,
@@ -96,11 +94,9 @@ fn build_request(
             )
         }
         (None, None) => (None, None),
-        _ => {
-            return Err(error_to_pyerr(SafeguardCoreError::invalid_input(
-                "old_storage_schema and new_storage_schema must be supplied together, or not at all",
-            )))
-        }
+        _ => return Err(error_to_pyerr(SafeguardCoreError::invalid_input(
+            "old_storage_schema and new_storage_schema must be supplied together, or not at all",
+        ))),
     };
 
     Ok(CompareRequest {
@@ -113,7 +109,10 @@ fn build_request(
     })
 }
 
-fn report_to_py(py: Python<'_>, report: &soroban_upgrade_safeguard::SafetyReport) -> PyResult<PyObject> {
+fn report_to_py(
+    py: Python<'_>,
+    report: &soroban_upgrade_safeguard::SafetyReport,
+) -> PyResult<PyObject> {
     let renderable = report.to_json();
     pythonize::pythonize(py, &renderable)
         .map(|bound| bound.unbind())
@@ -167,7 +166,8 @@ fn compare_bytes(
         new_storage_schema,
         new_storage_schema_format,
     )?;
-    let report = binding_api::compare_bytes(old_wasm, new_wasm, &request).map_err(error_to_pyerr)?;
+    let report =
+        binding_api::compare_bytes(old_wasm, new_wasm, &request).map_err(error_to_pyerr)?;
     report_to_py(py, &report)
 }
 
