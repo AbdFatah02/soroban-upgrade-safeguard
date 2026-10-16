@@ -388,9 +388,14 @@ enum RenderFormat {
                       soroban-upgrade-safeguard extract <WASM> [OPTIONS]\n       \
                       soroban-upgrade-safeguard lockfile <WASM> --output <PATH> [OPTIONS]\n       \
                       soroban-upgrade-safeguard render <REPORT_JSON> [OPTIONS]\n       \
+                      soroban-upgrade-safeguard upgrade-report <REPORT_JSON> [OPTIONS]\n       \
                       soroban-upgrade-safeguard init [OPTIONS]\n       \
+                      soroban-upgrade-safeguard attest <REPORT_JSON> --old-wasm <WASM> --new-wasm <WASM> --private-key <PKCS8_KEY> --key-id <IDENTITY> --output <DSSE_JSON> [OPTIONS]\n       \
+                      soroban-upgrade-safeguard verify-attestation <DSSE_JSON> --trusted-key <ID=PATH> [OPTIONS]\n       \
                       soroban-upgrade-safeguard stream [OPTIONS]\n       \
+                      soroban-upgrade-safeguard lint <WASM> [OPTIONS]\n       \
                       soroban-upgrade-safeguard preflight --rpc-url <URL> [OPTIONS]\n       \
+                      soroban-upgrade-safeguard print-schema [OPTIONS]\n       \
                       soroban-upgrade-safeguard categories [OPTIONS]\n       \
                       soroban-upgrade-safeguard doctor [OPTIONS]",
     args_conflicts_with_subcommands = true,
