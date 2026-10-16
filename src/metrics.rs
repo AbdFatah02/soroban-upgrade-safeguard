@@ -516,39 +516,39 @@ impl MetricsRegistry {
         // --- pairs ---
         writeln!(
             out,
-            "# HELP soroban_safeguard_pairs_total Total number of contract-pair analysis attempts in this run."
+            "# HELP soroban_safeguard_pairs Total number of contract-pair analysis attempts in this run."
         )
         .unwrap();
-        writeln!(out, "# TYPE soroban_safeguard_pairs_total counter").unwrap();
+        writeln!(out, "# TYPE soroban_safeguard_pairs counter").unwrap();
         writeln!(
             out,
-            "soroban_safeguard_pairs_total_total {}",
+            "soroban_safeguard_pairs_total {}",
             self.pairs_total.get()
         )
         .unwrap();
 
         writeln!(
             out,
-            "# HELP soroban_safeguard_pairs_success_total Contract-pair analyses that completed without an error."
+            "# HELP soroban_safeguard_pairs_success Contract-pair analyses that completed without an error."
         )
         .unwrap();
-        writeln!(out, "# TYPE soroban_safeguard_pairs_success_total counter").unwrap();
+        writeln!(out, "# TYPE soroban_safeguard_pairs_success counter").unwrap();
         writeln!(
             out,
-            "soroban_safeguard_pairs_success_total_total {}",
+            "soroban_safeguard_pairs_success_total {}",
             self.pairs_success.get()
         )
         .unwrap();
 
         writeln!(
             out,
-            "# HELP soroban_safeguard_pairs_error_total Contract-pair analyses that failed with an internal error."
+            "# HELP soroban_safeguard_pairs_error Contract-pair analyses that failed with an internal error."
         )
         .unwrap();
-        writeln!(out, "# TYPE soroban_safeguard_pairs_error_total counter").unwrap();
+        writeln!(out, "# TYPE soroban_safeguard_pairs_error counter").unwrap();
         writeln!(
             out,
-            "soroban_safeguard_pairs_error_total_total {}",
+            "soroban_safeguard_pairs_error_total {}",
             self.pairs_error.get()
         )
         .unwrap();
@@ -556,10 +556,10 @@ impl MetricsRegistry {
         // --- findings ---
         writeln!(
             out,
-            "# HELP soroban_safeguard_findings_total Finding counts by severity, axis, and outcome. Labels are drawn from closed enumerations; no user data appears as a label value."
+            "# HELP soroban_safeguard_findings Finding counts by severity, axis, and outcome. Labels are drawn from closed enumerations; no user data appears as a label value."
         )
         .unwrap();
-        writeln!(out, "# TYPE soroban_safeguard_findings_total counter").unwrap();
+        writeln!(out, "# TYPE soroban_safeguard_findings counter").unwrap();
         for severity in &[
             SeverityLabel::Critical,
             SeverityLabel::Warning,
@@ -604,12 +604,12 @@ impl MetricsRegistry {
             if metric.count() > 0 {
                 writeln!(
                     out,
-                    "# HELP soroban_safeguard_stage_duration_seconds_total Cumulative time spent in each pipeline stage."
+                    "# HELP soroban_safeguard_stage_duration_seconds Cumulative time spent in each pipeline stage."
                 )
                 .unwrap();
                 writeln!(
                     out,
-                    "# TYPE soroban_safeguard_stage_duration_seconds_total counter"
+                    "# TYPE soroban_safeguard_stage_duration_seconds counter"
                 )
                 .unwrap();
                 writeln!(
@@ -624,12 +624,12 @@ impl MetricsRegistry {
         if self.duration_total_seconds.count() > 0 {
             writeln!(
                 out,
-                "# HELP soroban_safeguard_run_duration_seconds_total Total wall-clock time of the analysis run."
+                "# HELP soroban_safeguard_run_duration_seconds Total wall-clock time of the analysis run."
             )
             .unwrap();
             writeln!(
                 out,
-                "# TYPE soroban_safeguard_run_duration_seconds_total counter"
+                "# TYPE soroban_safeguard_run_duration_seconds counter"
             )
             .unwrap();
             writeln!(
@@ -643,10 +643,10 @@ impl MetricsRegistry {
         // --- cache ---
         writeln!(
             out,
-            "# HELP soroban_safeguard_cache_lookups_total Metadata-cache lookups by result."
+            "# HELP soroban_safeguard_cache_lookups Metadata-cache lookups by result."
         )
         .unwrap();
-        writeln!(out, "# TYPE soroban_safeguard_cache_lookups_total counter").unwrap();
+        writeln!(out, "# TYPE soroban_safeguard_cache_lookups counter").unwrap();
         for (result, count) in &[
             (CacheResultLabel::Hit, self.cache_hits.get()),
             (CacheResultLabel::Miss, self.cache_misses.get()),
@@ -667,10 +667,10 @@ impl MetricsRegistry {
         // --- RPC ---
         writeln!(
             out,
-            "# HELP soroban_safeguard_rpc_attempts_total RPC baseline-fetch attempts by result."
+            "# HELP soroban_safeguard_rpc_attempts RPC baseline-fetch attempts by result."
         )
         .unwrap();
-        writeln!(out, "# TYPE soroban_safeguard_rpc_attempts_total counter").unwrap();
+        writeln!(out, "# TYPE soroban_safeguard_rpc_attempts counter").unwrap();
         for (result, count) in &[
             (RpcResultLabel::Success, self.rpc_attempts_success.get()),
             (
@@ -700,13 +700,13 @@ impl MetricsRegistry {
         if self.watch_cycles_total.get() > 0 {
             writeln!(
                 out,
-                "# HELP soroban_safeguard_watch_cycles_total Number of watch-mode re-analysis cycles triggered by filesystem events."
+                "# HELP soroban_safeguard_watch_cycles Number of watch-mode re-analysis cycles triggered by filesystem events."
             )
             .unwrap();
-            writeln!(out, "# TYPE soroban_safeguard_watch_cycles_total counter").unwrap();
+            writeln!(out, "# TYPE soroban_safeguard_watch_cycles counter").unwrap();
             writeln!(
                 out,
-                "soroban_safeguard_watch_cycles_total_total {}",
+                "soroban_safeguard_watch_cycles_total {}",
                 self.watch_cycles_total.get()
             )
             .unwrap();
@@ -714,17 +714,17 @@ impl MetricsRegistry {
         if self.resource_limit_hits.get() > 0 {
             writeln!(
                 out,
-                "# HELP soroban_safeguard_resource_limit_hits_total Number of times a configured resource limit (WASM size, complexity budget) was exceeded."
+                "# HELP soroban_safeguard_resource_limit_hits Number of times a configured resource limit (WASM size, complexity budget) was exceeded."
             )
             .unwrap();
             writeln!(
                 out,
-                "# TYPE soroban_safeguard_resource_limit_hits_total counter"
+                "# TYPE soroban_safeguard_resource_limit_hits counter"
             )
             .unwrap();
             writeln!(
                 out,
-                "soroban_safeguard_resource_limit_hits_total_total {}",
+                "soroban_safeguard_resource_limit_hits_total {}",
                 self.resource_limit_hits.get()
             )
             .unwrap();
