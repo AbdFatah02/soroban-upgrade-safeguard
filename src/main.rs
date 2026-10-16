@@ -388,9 +388,14 @@ enum RenderFormat {
                       soroban-upgrade-safeguard extract <WASM> [OPTIONS]\n       \
                       soroban-upgrade-safeguard lockfile <WASM> --output <PATH> [OPTIONS]\n       \
                       soroban-upgrade-safeguard render <REPORT_JSON> [OPTIONS]\n       \
+                      soroban-upgrade-safeguard upgrade-report <REPORT_JSON> [OPTIONS]\n       \
                       soroban-upgrade-safeguard init [OPTIONS]\n       \
+                      soroban-upgrade-safeguard attest <REPORT_JSON> --old-wasm <WASM> --new-wasm <WASM> --private-key <PKCS8_KEY> --key-id <IDENTITY> --output <DSSE_JSON> [OPTIONS]\n       \
+                      soroban-upgrade-safeguard verify-attestation <DSSE_JSON> --trusted-key <ID=PATH> [OPTIONS]\n       \
                       soroban-upgrade-safeguard stream [OPTIONS]\n       \
+                      soroban-upgrade-safeguard lint <WASM> [OPTIONS]\n       \
                       soroban-upgrade-safeguard preflight --rpc-url <URL> [OPTIONS]\n       \
+                      soroban-upgrade-safeguard print-schema [OPTIONS]\n       \
                       soroban-upgrade-safeguard categories [OPTIONS]\n       \
                       soroban-upgrade-safeguard doctor [OPTIONS]",
     args_conflicts_with_subcommands = true,
@@ -768,15 +773,15 @@ struct Args {
     lineage_store: Option<PathBuf>,
 
     /// Record candidate build as a new version in the lineage store with this tag.
-    #[arg(long, value_name = "VERSION_ID")]
+    #[arg(long, value_name = "VERSION_ID", requires = "lineage_store")]
     record_version: Option<String>,
 
     /// Mark an existing historical version as retired in the lineage store.
-    #[arg(long, value_name = "VERSION_ID")]
+    #[arg(long, value_name = "VERSION_ID", requires = "lineage_store")]
     retire_version: Option<String>,
 
     /// Maximum live historical versions to validate candidate against.
-    #[arg(long, value_name = "N")]
+    #[arg(long, value_name = "N", requires = "lineage_store")]
     max_live_versions: Option<usize>,
 
     /// Write an OpenMetrics-format metrics snapshot to this file after the
@@ -2189,7 +2194,18 @@ fn run_attest(args: &AttestArgs) -> Result<()> {
 }
 
 fn run_verify_attestation(args: &VerifyAttestationArgs) -> Result<()> {
-    let envelope: DsseEnvelope = serde_json::from_slice(&std::fs::read(&args.attestation)?)?;
+    let attestation_bytes = std::fs::read(&args.attestation).with_context(|| {
+        format!(
+            "Failed to read attestation '{}'.",
+            args.attestation.display()
+        )
+    })?;
+    let envelope: DsseEnvelope = serde_json::from_slice(&attestation_bytes).with_context(|| {
+        format!(
+            "Failed to parse attestation '{}' as JSON.",
+            args.attestation.display()
+        )
+    })?;
     let statement = match envelope.statement() {
         Ok(statement) => statement,
         Err(error) => {
