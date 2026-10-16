@@ -415,16 +415,18 @@ fn direct_dependency_edges(spec: &ContractSpec) -> HashSet<(String, String)> {
 /// that comparison, used only to attribute [`NodeKind::Policy`] nodes —
 /// this function does not re-run suppression matching logic beyond
 /// calling [`SuppressionConfig::matching_rule`] once per finding.
+///
+/// `builds` is the (old, new) pair of [`BuildIdentity`] values.
 pub fn build_impact_graph(
     old_spec: &ContractSpec,
     new_spec: &ContractSpec,
     findings: &[Finding],
     suppressions: &SuppressionConfig,
     storage_schemas: Option<(&StorageSchema, &StorageSchema)>,
-    old_build: BuildIdentity,
-    new_build: BuildIdentity,
+    builds: (BuildIdentity, BuildIdentity),
     limits: &GraphLimits,
 ) -> ImpactGraph {
+    let (old_build, new_build) = builds;
     let mut nodes: BTreeMap<String, NodeBuilder> = BTreeMap::new();
     let mut name_kind: HashMap<String, NodeKind> = HashMap::new();
 
@@ -741,8 +743,7 @@ mod tests {
             &[],
             &SuppressionConfig::default(),
             None,
-            BuildIdentity::default(),
-            BuildIdentity::default(),
+            (BuildIdentity::default(), BuildIdentity::default()),
             &GraphLimits::default(),
         );
 
@@ -782,8 +783,7 @@ mod tests {
             &findings,
             &SuppressionConfig::default(),
             None,
-            BuildIdentity::default(),
-            BuildIdentity::default(),
+            (BuildIdentity::default(), BuildIdentity::default()),
             &GraphLimits::default(),
         );
 
@@ -822,8 +822,7 @@ mod tests {
             &[],
             &SuppressionConfig::default(),
             None,
-            BuildIdentity::default(),
-            BuildIdentity::default(),
+            (BuildIdentity::default(), BuildIdentity::default()),
             &GraphLimits::default(),
         );
 
@@ -859,8 +858,7 @@ mod tests {
             &[cascade],
             &SuppressionConfig::default(),
             None,
-            BuildIdentity::default(),
-            BuildIdentity::default(),
+            (BuildIdentity::default(), BuildIdentity::default()),
             &GraphLimits::default(),
         );
 
@@ -901,8 +899,7 @@ mod tests {
             &findings,
             &suppressions,
             None,
-            BuildIdentity::default(),
-            BuildIdentity::default(),
+            (BuildIdentity::default(), BuildIdentity::default()),
             &GraphLimits::default(),
         );
 
@@ -939,8 +936,7 @@ mod tests {
             &[],
             &SuppressionConfig::default(),
             None,
-            BuildIdentity::default(),
-            BuildIdentity::default(),
+            (BuildIdentity::default(), BuildIdentity::default()),
             &tiny_limits,
         );
 
@@ -969,8 +965,7 @@ mod tests {
             &[],
             &SuppressionConfig::default(),
             None,
-            BuildIdentity::default(),
-            BuildIdentity::default(),
+            (BuildIdentity::default(), BuildIdentity::default()),
             &GraphLimits::default(),
         );
 
