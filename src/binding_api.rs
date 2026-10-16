@@ -219,18 +219,12 @@ mod tests {
         // (env metadata, host imports, and runtime surface are all compared),
         // not the narrower `compare_wasm_bytes`, so this is the apples-to-apples
         // baseline for a request carrying no extra policy.
-        let via_root_api = crate::compare_wasm_bytes_with_options(
-            &old,
-            &new,
-            &crate::CompareOptions::default(),
-        )
-        .expect("crate::compare_wasm_bytes_with_options should succeed");
+        let via_root_api =
+            crate::compare_wasm_bytes_with_options(&old, &new, &crate::CompareOptions::default())
+                .expect("crate::compare_wasm_bytes_with_options should succeed");
 
         assert_eq!(via_binding_api.is_safe, via_root_api.is_safe);
-        assert_eq!(
-            via_binding_api.critical_count,
-            via_root_api.critical_count
-        );
+        assert_eq!(via_binding_api.critical_count, via_root_api.critical_count);
         assert_eq!(
             serde_json::to_value(via_binding_api.to_json()).unwrap(),
             serde_json::to_value(via_root_api.to_json()).unwrap()

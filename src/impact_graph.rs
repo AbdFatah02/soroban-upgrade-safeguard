@@ -60,7 +60,19 @@ pub const IMPACT_GRAPH_SCHEMA_VERSION: u32 = 1;
 const CASCADE_CATEGORY: &str = "Cascading Layout Break";
 
 /// What kind of entity a node represents.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, schemars::JsonSchema)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Hash,
+    Serialize,
+    Deserialize,
+    schemars::JsonSchema,
+)]
 #[serde(rename_all = "snake_case")]
 pub enum NodeKind {
     Function,
@@ -97,7 +109,9 @@ impl NodeKind {
 
 /// Whether a node exists only on one side of the upgrade, on both with no
 /// finding touching it, or on both with at least one finding touching it.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, schemars::JsonSchema)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, schemars::JsonSchema,
+)]
 #[serde(rename_all = "snake_case")]
 pub enum NodeStatus {
     Added,
@@ -110,7 +124,9 @@ pub enum NodeStatus {
 }
 
 /// How two nodes relate.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, schemars::JsonSchema)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, schemars::JsonSchema,
+)]
 #[serde(rename_all = "snake_case")]
 pub enum EdgeKind {
     /// Direct (one-hop) structural dependency: the source's layout embeds
@@ -315,9 +331,7 @@ fn collect_spec_nodes(
         } else {
             entry.new_present = true;
         }
-        name_kind
-            .entry(name.clone())
-            .or_insert(NodeKind::Function);
+        name_kind.entry(name.clone()).or_insert(NodeKind::Function);
     }
 
     let udt_sources: [(&str, Vec<&String>); 4] = [
@@ -465,12 +479,11 @@ pub fn build_impact_graph(
     // order the diff engine's internal maps happened to iterate in.
     let mut sorted_findings: Vec<&Finding> = findings.iter().collect();
     sorted_findings.sort_by(|a, b| {
-        (
-            &a.category,
-            a.target.as_deref().unwrap_or(""),
-            &a.message,
-        )
-            .cmp(&(&b.category, b.target.as_deref().unwrap_or(""), &b.message))
+        (&a.category, a.target.as_deref().unwrap_or(""), &a.message).cmp(&(
+            &b.category,
+            b.target.as_deref().unwrap_or(""),
+            &b.message,
+        ))
     });
 
     let mut referenced_node_ids: HashSet<String> = HashSet::new();
@@ -603,7 +616,9 @@ pub fn build_impact_graph(
     // endpoint a consumer can't find.
     if truncated {
         let kept_ids: HashSet<&str> = graph_nodes.iter().map(|n| n.id.as_str()).collect();
-        graph_edges.retain(|e| kept_ids.contains(e.source.as_str()) && kept_ids.contains(e.target.as_str()));
+        graph_edges.retain(|e| {
+            kept_ids.contains(e.source.as_str()) && kept_ids.contains(e.target.as_str())
+        });
     }
 
     ImpactGraph {
@@ -796,7 +811,9 @@ mod tests {
         assert!(balance.axes.contains(&CompatibilityAxis::StorageLayout));
 
         let has_reference_edge = graph.edges.iter().any(|e| {
-            e.kind == EdgeKind::References && e.target == "type:Balance" && e.source.starts_with("finding:")
+            e.kind == EdgeKind::References
+                && e.target == "type:Balance"
+                && e.source.starts_with("finding:")
         });
         assert!(has_reference_edge, "edges: {:?}", graph.edges);
     }
@@ -877,11 +894,7 @@ mod tests {
         // "Struct Removed" finding below is about.
         let new_spec = ContractSpec::default();
 
-        let findings = vec![finding(
-            "Struct Removed",
-            Some("Balance"),
-            Some("Balance"),
-        )];
+        let findings = vec![finding("Struct Removed", Some("Balance"), Some("Balance"))];
 
         // Not `..Default::default()`: `SuppressionConfig` has private fields
         // (e.g. `raw_budget`), which struct-update syntax can't fill from
