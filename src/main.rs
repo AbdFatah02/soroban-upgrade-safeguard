@@ -2194,7 +2194,18 @@ fn run_attest(args: &AttestArgs) -> Result<()> {
 }
 
 fn run_verify_attestation(args: &VerifyAttestationArgs) -> Result<()> {
-    let envelope: DsseEnvelope = serde_json::from_slice(&std::fs::read(&args.attestation)?)?;
+    let attestation_bytes = std::fs::read(&args.attestation).with_context(|| {
+        format!(
+            "Failed to read attestation '{}'.",
+            args.attestation.display()
+        )
+    })?;
+    let envelope: DsseEnvelope = serde_json::from_slice(&attestation_bytes).with_context(|| {
+        format!(
+            "Failed to parse attestation '{}' as JSON.",
+            args.attestation.display()
+        )
+    })?;
     let statement = match envelope.statement() {
         Ok(statement) => statement,
         Err(error) => {
