@@ -21,7 +21,8 @@ fn extracted_spec_json(source: &str, wasm: &[u8]) -> String {
     let metadata = soroban_upgrade_safeguard::parser::extract_metadata(wasm)
         .expect("failed to extract metadata from fixture WASM");
     let spec = soroban_upgrade_safeguard::spec::ContractSpec::from_entries(&metadata.spec);
-    let extracted = soroban_upgrade_safeguard::spec_json::ExtractedSpec::new(source, &metadata, &spec);
+    let extracted =
+        soroban_upgrade_safeguard::spec_json::ExtractedSpec::new(source, &metadata, &spec);
     serde_json::to_string(&extracted).expect("failed to serialize extracted spec")
 }
 

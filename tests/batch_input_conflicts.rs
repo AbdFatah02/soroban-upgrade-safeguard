@@ -53,7 +53,9 @@ fn manifest_plus_old_and_new_dir_is_rejected() {
     assert_ne!(code, 0, "manifest + directory mode must be rejected");
     let combined = format!("{stdout}{stderr}");
     assert!(
-        combined.contains("--manifest") && combined.contains("--old-dir") && combined.contains("--new-dir"),
+        combined.contains("--manifest")
+            && combined.contains("--old-dir")
+            && combined.contains("--new-dir"),
         "diagnostic should name all three conflicting flags, got: {combined}"
     );
     assert!(
@@ -131,7 +133,9 @@ fn directory_mode_plus_positional_wasm_paths_is_rejected() {
     );
     let combined = format!("{stdout}{stderr}");
     assert!(
-        combined.contains("--old-dir") && combined.contains("--new-dir") && combined.contains("positional"),
+        combined.contains("--old-dir")
+            && combined.contains("--new-dir")
+            && combined.contains("positional"),
         "diagnostic should identify batch mode and the positional-path conflict, got: {combined}"
     );
     assert!(

@@ -120,7 +120,10 @@ fn valid_manifest_is_accepted_and_reported_as_verified() {
 
     std::fs::remove_file(&path).ok();
 
-    assert_eq!(code, 0, "valid manifest run should succeed, stderr: {stderr}");
+    assert_eq!(
+        code, 0,
+        "valid manifest run should succeed, stderr: {stderr}"
+    );
     let report: serde_json::Value = serde_json::from_str(&stdout).expect("stdout is valid JSON");
     let integrity = &report["snapshot_integrity"];
     assert_eq!(integrity["integrity"], "verified", "report: {report}");
@@ -210,7 +213,10 @@ fn legacy_snapshot_without_a_manifest_still_loads_as_unverified() {
 
     std::fs::remove_file(&path).ok();
 
-    assert_eq!(code, 0, "legacy snapshot without a manifest should still succeed, stderr: {stderr}");
+    assert_eq!(
+        code, 0,
+        "legacy snapshot without a manifest should still succeed, stderr: {stderr}"
+    );
     let report: serde_json::Value = serde_json::from_str(&stdout).expect("stdout is valid JSON");
     assert_eq!(report["snapshot_integrity"]["integrity"], "unverified");
 }
@@ -255,7 +261,10 @@ fn gzip_compressed_snapshot_is_accepted() {
 
     std::fs::remove_file(&path).ok();
 
-    assert_eq!(code, 0, "gzip-compressed snapshot should load, stderr: {stderr}");
+    assert_eq!(
+        code, 0,
+        "gzip-compressed snapshot should load, stderr: {stderr}"
+    );
     let report: serde_json::Value = serde_json::from_str(&stdout).expect("stdout is valid JSON");
     assert_eq!(report["snapshot_integrity"]["integrity"], "unverified");
 }

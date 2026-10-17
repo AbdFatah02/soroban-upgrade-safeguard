@@ -52,23 +52,34 @@ fn impact_graph_flag_adds_a_versioned_graph_to_the_json_report() {
     assert!(graph["edges"].is_array());
 
     let nodes = graph["nodes"].as_array().unwrap();
-    assert!(!nodes.is_empty(), "comparing two non-trivial contracts should yield at least one node");
+    assert!(
+        !nodes.is_empty(),
+        "comparing two non-trivial contracts should yield at least one node"
+    );
 
     // Every node must have a recognizable kind and a non-empty id — this
     // is a schema-shape smoke test, not a specific-content assertion,
     // since the exact structural diff between v1/v2 is covered by other
     // test files.
-    let allowed_kinds = ["function", "type", "storage", "event", "finding", "policy", "contract"];
+    let allowed_kinds = [
+        "function", "type", "storage", "event", "finding", "policy", "contract",
+    ];
     for node in nodes {
         let kind = node["kind"].as_str().expect("node kind should be a string");
-        assert!(allowed_kinds.contains(&kind), "unexpected node kind: {kind}");
+        assert!(
+            allowed_kinds.contains(&kind),
+            "unexpected node kind: {kind}"
+        );
         assert!(!node["id"].as_str().unwrap_or("").is_empty());
     }
 
     let allowed_edge_kinds = ["depends_on", "cascades", "calls", "references"];
     for edge in graph["edges"].as_array().unwrap() {
         let kind = edge["kind"].as_str().expect("edge kind should be a string");
-        assert!(allowed_edge_kinds.contains(&kind), "unexpected edge kind: {kind}");
+        assert!(
+            allowed_edge_kinds.contains(&kind),
+            "unexpected edge kind: {kind}"
+        );
     }
 }
 
@@ -91,10 +102,7 @@ fn print_schema_impact_graph_target_emits_a_draft_07_schema() {
     assert!(output.status.success());
     let stdout = String::from_utf8(output.stdout).expect("stdout was not valid UTF-8");
     let schema: Value = serde_json::from_str(&stdout).expect("schema output was not valid JSON");
-    assert_eq!(
-        schema["$schema"],
-        "http://json-schema.org/draft-07/schema#"
-    );
+    assert_eq!(schema["$schema"], "http://json-schema.org/draft-07/schema#");
     let defs_key = if schema.get("definitions").is_some() {
         "definitions"
     } else {
