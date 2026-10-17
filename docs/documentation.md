@@ -777,7 +777,9 @@ interface-only because it has no schema discovery step.
 
 ### Manifest format
 
-TOML and JSON are both accepted with the same shape. A ready-to-copy template lives at [`.storage-schema.example.toml`](../.storage-schema.example.toml).
+TOML and JSON are both accepted with the same shape. See the
+[Storage Schema Cookbook](storage-schema-cookbook.md) for ready-to-copy,
+worked examples.
 
 ```toml
 # Storage-key types: what addresses your entries.
