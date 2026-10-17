@@ -700,7 +700,9 @@ impl RenderableReport {
                 output.push_str("\nSnapshot Integrity:\n");
                 let status_label = match integrity.integrity {
                     SnapshotIntegrity::Verified => "verified".green().to_string(),
-                    SnapshotIntegrity::Unverified => "unverified (no manifest)".yellow().to_string(),
+                    SnapshotIntegrity::Unverified => {
+                        "unverified (no manifest)".yellow().to_string()
+                    }
                     SnapshotIntegrity::Failed => "failed".red().bold().to_string(),
                 };
                 output.push_str(&format!("  - Status: {}\n", status_label));
@@ -722,9 +724,17 @@ impl RenderableReport {
 
         if let Some(graph) = &self.impact_graph {
             output.push('\n');
-            output.push_str(&"========================================\n".bold().to_string());
+            output.push_str(
+                &"========================================\n"
+                    .bold()
+                    .to_string(),
+            );
             output.push_str(&"    IMPACT GRAPH\n".bold().cyan().to_string());
-            output.push_str(&"========================================\n".bold().to_string());
+            output.push_str(
+                &"========================================\n"
+                    .bold()
+                    .to_string(),
+            );
             output.push_str(&format!(
                 "Nodes: {}  Edges: {}\n",
                 graph.limits.node_count, graph.limits.edge_count
@@ -742,7 +752,9 @@ impl RenderableReport {
                     .to_string(),
                 );
             }
-            output.push_str("See --format json for the full graph (nodes, edges, and their kinds).\n");
+            output.push_str(
+                "See --format json for the full graph (nodes, edges, and their kinds).\n",
+            );
         }
 
         if let Some(checked) = self.lineage_versions_checked {
@@ -1232,7 +1244,9 @@ impl RenderableReport {
                     graph.limits.total_edges
                 ));
             }
-            output.push_str("- See `--format json` for the full graph (nodes, edges, and their kinds).\n\n");
+            output.push_str(
+                "- See `--format json` for the full graph (nodes, edges, and their kinds).\n\n",
+            );
         }
 
         if let Some(checked) = self.lineage_versions_checked {

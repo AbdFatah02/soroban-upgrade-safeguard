@@ -106,14 +106,20 @@ fn a_verified_bundle_is_applied_and_recorded_in_provenance() {
 
     std::fs::remove_file(&bundle_path).ok();
 
-    assert_eq!(code, 0, "a verified bundle run should itself succeed, stderr: {stderr}");
-    let json: serde_json::Value =
-        serde_json::from_str(&stdout).unwrap_or_else(|e| panic!("stdout was not valid JSON ({e}):\n{stdout}"));
+    assert_eq!(
+        code, 0,
+        "a verified bundle run should itself succeed, stderr: {stderr}"
+    );
+    let json: serde_json::Value = serde_json::from_str(&stdout)
+        .unwrap_or_else(|e| panic!("stdout was not valid JSON ({e}):\n{stdout}"));
 
     let recorded = &json["policy_bundle"];
     assert_eq!(recorded["bundle_id"], "test-org-baseline");
     assert_eq!(recorded["verified"], true);
-    assert_eq!(recorded["signer_identities"], serde_json::json!(["test-signer"]));
+    assert_eq!(
+        recorded["signer_identities"],
+        serde_json::json!(["test-signer"])
+    );
     assert!(recorded["digest"].as_str().unwrap().starts_with("sha256:"));
 }
 
@@ -142,7 +148,8 @@ fn a_bundle_with_no_trusted_key_is_rejected_before_any_wasm_is_loaded() {
         "error should explain the bundle failed verification, got: {combined}"
     );
     assert!(
-        !combined.to_lowercase().contains("no such file") && !combined.to_lowercase().contains("not found"),
+        !combined.to_lowercase().contains("no such file")
+            && !combined.to_lowercase().contains("not found"),
         "the bundle must be rejected before any WASM path is opened, got: {combined}"
     );
 }
@@ -171,7 +178,8 @@ fn policy_bundle_is_rejected_in_batch_mode() {
         "error should name both --policy-bundle and batch mode, got: {combined}"
     );
     assert!(
-        !combined.to_lowercase().contains("no such file") && !combined.to_lowercase().contains("not found"),
+        !combined.to_lowercase().contains("no such file")
+            && !combined.to_lowercase().contains("not found"),
         "the conflict must be caught before the manifest is ever opened, got: {combined}"
     );
 }

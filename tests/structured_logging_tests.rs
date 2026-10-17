@@ -82,9 +82,21 @@ fn test_redaction_rules() {
     set_configured_private_fields(vec!["custom_private_token".to_string()]);
 
     assert_eq!(redact_value("api_key", "secret-key-123"), "[REDACTED]");
-    assert_eq!(redact_value("rpc_url", "https://admin:secret@rpc.stellar.org:8000/api?token=abc"), "https://[REDACTED]rpc.stellar.org:8000/api");
-    assert_eq!(redact_value("wasm_file", "/Users/alice/projects/contract.wasm"), "<redacted>/contract.wasm");
-    assert_eq!(redact_value("custom_private_token", "my-private-value"), "[REDACTED]");
+    assert_eq!(
+        redact_value(
+            "rpc_url",
+            "https://admin:secret@rpc.stellar.org:8000/api?token=abc"
+        ),
+        "https://[REDACTED]rpc.stellar.org:8000/api"
+    );
+    assert_eq!(
+        redact_value("wasm_file", "/Users/alice/projects/contract.wasm"),
+        "<redacted>/contract.wasm"
+    );
+    assert_eq!(
+        redact_value("custom_private_token", "my-private-value"),
+        "[REDACTED]"
+    );
 }
 
 #[test]

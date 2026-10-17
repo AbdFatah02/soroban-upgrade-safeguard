@@ -46,7 +46,10 @@ fn remote_timeout_secs_zero_fails_fast_with_a_clear_message_instead_of_hanging()
     // gets past input validation and actually attempts the fetch --
     // that's the only way to exercise the timeout path itself, as
     // opposed to tests/remote_cli.rs's validation-rejection tests.
-    let reference = format!("https://203.0.113.1/contract.wasm#sha256={}", "a".repeat(64));
+    let reference = format!(
+        "https://203.0.113.1/contract.wasm#sha256={}",
+        "a".repeat(64)
+    );
 
     let start = Instant::now();
     let output = Command::new(env!("CARGO_BIN_EXE_soroban-upgrade-safeguard"))

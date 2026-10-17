@@ -50,7 +50,9 @@ fn write_store_with_one_record(path: &PathBuf) -> Vec<u8> {
             metadata: Default::default(),
         })
         .expect("failed to record version");
-    store.save_to_path(path).expect("failed to save lineage store");
+    store
+        .save_to_path(path)
+        .expect("failed to save lineage store");
     std::fs::read(path).expect("failed to read back saved lineage store")
 }
 

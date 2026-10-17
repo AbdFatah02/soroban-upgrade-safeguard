@@ -87,8 +87,8 @@ fn show_config_format_json_is_parseable_and_redacts_the_same_way() {
     );
 
     assert_eq!(code, 0, "stderr: {stderr}");
-    let json: serde_json::Value =
-        serde_json::from_str(&stdout).unwrap_or_else(|e| panic!("stdout was not valid JSON ({e}):\n{stdout}"));
+    let json: serde_json::Value = serde_json::from_str(&stdout)
+        .unwrap_or_else(|e| panic!("stdout was not valid JSON ({e}):\n{stdout}"));
 
     assert!(!stdout.contains("super-secret-token-value-json"));
 
