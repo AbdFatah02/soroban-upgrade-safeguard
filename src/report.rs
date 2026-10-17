@@ -1094,9 +1094,7 @@ impl SafetyReport {
         self.policy_bundle.as_ref()
     }
 
-    pub fn snapshot_integrity(
-        &self,
-    ) -> Option<&crate::snapshot_manifest::SnapshotIntegrityReport> {
+    pub fn snapshot_integrity(&self) -> Option<&crate::snapshot_manifest::SnapshotIntegrityReport> {
         self.snapshot_integrity.as_ref()
     }
 

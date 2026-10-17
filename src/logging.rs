@@ -4,8 +4,8 @@
 //! event names, and comprehensive redaction rules.
 
 use std::io::Write;
-use std::sync::Mutex;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Mutex;
 
 /// Log level for structured diagnostics.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, serde::Serialize)]
@@ -82,7 +82,10 @@ pub fn set_configured_private_fields(fields: Vec<String>) {
 }
 
 pub fn get_configured_private_fields() -> Vec<String> {
-    CONFIGURED_PRIVATE_FIELDS.lock().map(|f| f.clone()).unwrap_or_default()
+    CONFIGURED_PRIVATE_FIELDS
+        .lock()
+        .map(|f| f.clone())
+        .unwrap_or_default()
 }
 
 /// Redaction rules for structured logging.
@@ -105,11 +108,19 @@ pub fn redact_value(key: &str, value: &str) -> String {
         return "[REDACTED]".to_string();
     }
 
-    if lower_key.contains("url") || lower_key.contains("endpoint") || value.starts_with("http://") || value.starts_with("https://") {
+    if lower_key.contains("url")
+        || lower_key.contains("endpoint")
+        || value.starts_with("http://")
+        || value.starts_with("https://")
+    {
         return crate::rpc::redact_url(value);
     }
 
-    if lower_key.contains("wasm") || lower_key.contains("path") || lower_key.contains("file") || value.ends_with(".wasm") {
+    if lower_key.contains("wasm")
+        || lower_key.contains("path")
+        || lower_key.contains("file")
+        || value.ends_with(".wasm")
+    {
         return crate::redact::redact_local_path(value);
     }
 
@@ -195,7 +206,9 @@ pub fn log_event(
             LogLevel::Warn => "[WARN]",
             LogLevel::Error => "[ERROR]",
         };
-        let corr_str = correlation_id.map(|c| format!(" [corr={c}]")).unwrap_or_default();
+        let corr_str = correlation_id
+            .map(|c| format!(" [corr={c}]"))
+            .unwrap_or_default();
         let pair_str = pair_id.map(|p| format!(" [pair={p}]")).unwrap_or_default();
         let _ = writeln!(stderr, "{prefix}{corr_str}{pair_str} {message}");
         let _ = stderr.flush();
@@ -214,7 +227,10 @@ fn chrono_timestamp() -> String {
         let secs = remainder % 60;
         // Approximate calendar year/month/day from days since epoch
         let (y, m, d) = days_to_ymd(days);
-        format!("{:04}-{:02}-{:02}T{:02}:{:02}:{:02}Z", y, m, d, hours, mins, secs)
+        format!(
+            "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}Z",
+            y, m, d, hours, mins, secs
+        )
     } else {
         "1970-01-01T00:00:00Z".to_string()
     }
@@ -223,7 +239,7 @@ fn chrono_timestamp() -> String {
 fn days_to_ymd(mut days: u64) -> (u32, u32, u32) {
     // Gregorian calendar epoch 1970-01-01
     let mut year = 1970;
-    loop  {
+    loop {
         let leap = (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
         let year_days = if leap { 366 } else { 365 };
         if days >= year_days {
@@ -237,7 +253,16 @@ fn days_to_ymd(mut days: u64) -> (u32, u32, u32) {
     let month_days = [
         31,
         if leap { 29 } else { 28 },
-        31, 30, 31, 30, 31, 31, 30, 31, 30, 31,
+        31,
+        30,
+        31,
+        30,
+        31,
+        31,
+        30,
+        31,
+        30,
+        31,
     ];
     let mut month = 1;
     for &md in &month_days {
@@ -270,8 +295,14 @@ mod tests {
     #[test]
     fn test_redact_value() {
         assert_eq!(redact_value("secret_token", "my_secret_123"), "[REDACTED]");
-        assert_eq!(redact_value("rpc_url", "https://user:pass@stellar.org?key=secret"), "https://[REDACTED]stellar.org");
-        assert_eq!(redact_value("wasm_path", "/home/user/contracts/v1.wasm"), "<redacted>/v1.wasm");
+        assert_eq!(
+            redact_value("rpc_url", "https://user:pass@stellar.org?key=secret"),
+            "https://[REDACTED]stellar.org"
+        );
+        assert_eq!(
+            redact_value("wasm_path", "/home/user/contracts/v1.wasm"),
+            "<redacted>/v1.wasm"
+        );
     }
 
     #[test]

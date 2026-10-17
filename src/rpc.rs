@@ -351,7 +351,10 @@ fn split_host_port<'a>(
 /// attacker might control (DNS rebinding) to decide whether an HTTP
 /// endpoint counts as "local".
 fn is_loopback_rpc_host(host: &str) -> bool {
-    let host = host.strip_prefix('[').and_then(|h| h.strip_suffix(']')).unwrap_or(host);
+    let host = host
+        .strip_prefix('[')
+        .and_then(|h| h.strip_suffix(']'))
+        .unwrap_or(host);
     host.eq_ignore_ascii_case("localhost") || host == "127.0.0.1" || host == "::1"
 }
 
@@ -368,7 +371,10 @@ fn is_loopback_rpc_host(host: &str) -> bool {
 /// entry point (`main.rs`'s `rpc_config`) calls this.
 pub fn enforce_rpc_url_scheme_policy(url: &str, allow_http_local: bool) -> Result<(), Error> {
     let (scheme, rest) = url.split_once("://").ok_or_else(|| Error::RpcAuthConfig {
-        details: format!("RPC URL '{}' is missing a scheme (expected http:// or https://)", redact_url(url)),
+        details: format!(
+            "RPC URL '{}' is missing a scheme (expected http:// or https://)",
+            redact_url(url)
+        ),
     })?;
     if scheme.eq_ignore_ascii_case("https") {
         return Ok(());
@@ -381,7 +387,10 @@ pub fn enforce_rpc_url_scheme_policy(url: &str, allow_http_local: bool) -> Resul
 
     let authority_end = rest.find(['/', '?', '#']).unwrap_or(rest.len());
     let authority = &rest[..authority_end];
-    let host_port = authority.rsplit_once('@').map(|(_, h)| h).unwrap_or(authority);
+    let host_port = authority
+        .rsplit_once('@')
+        .map(|(_, h)| h)
+        .unwrap_or(authority);
     let (host, _port) = split_host_port(host_port, url)?;
 
     if allow_http_local && is_loopback_rpc_host(host) {

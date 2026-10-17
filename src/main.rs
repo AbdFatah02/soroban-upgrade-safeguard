@@ -5430,12 +5430,13 @@ fn compare_contracts(
                         network: report.rpc_provenance.as_ref().map(|p| p.network.clone()),
                         ledger_sequence: report.rpc_provenance.as_ref().map(|p| p.ledger_sequence),
                     };
-                    let integrity_report = soroban_upgrade_safeguard::snapshot_manifest::verify_snapshot(
-                        manifest.as_ref(),
-                        &loaded,
-                        &expected,
-                    )
-                    .map_err(|e| anyhow::anyhow!("Empirical validation error: {}", e))?;
+                    let integrity_report =
+                        soroban_upgrade_safeguard::snapshot_manifest::verify_snapshot(
+                            manifest.as_ref(),
+                            &loaded,
+                            &expected,
+                        )
+                        .map_err(|e| anyhow::anyhow!("Empirical validation error: {}", e))?;
 
                     if integrity_report.integrity
                         == soroban_upgrade_safeguard::snapshot_manifest::SnapshotIntegrity::Failed
@@ -5454,7 +5455,10 @@ fn compare_contracts(
                     if manifest.is_some() {
                         progress("✅ Snapshot integrity manifest verified".to_string());
                     } else {
-                        progress("⚠️  Snapshot has no integrity manifest; coverage is unverified".to_string());
+                        progress(
+                            "⚠️  Snapshot has no integrity manifest; coverage is unverified"
+                                .to_string(),
+                        );
                     }
 
                     snapshot_integrity = Some(integrity_report);
