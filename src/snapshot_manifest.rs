@@ -48,7 +48,9 @@ use std::path::Path;
 
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use stellar_xdr::curr::{ContractDataDurability, ContractDataEntry, Limits, ScAddress, ScVal, WriteXdr};
+use stellar_xdr::curr::{
+    ContractDataDurability, ContractDataEntry, Limits, ScAddress, ScVal, WriteXdr,
+};
 
 use crate::error::Error;
 
@@ -184,12 +186,14 @@ fn contract_id_strkey(address: &ScAddress) -> Result<String, Error> {
 }
 
 fn to_xdr_bytes<T: WriteXdr>(value: &T, what: &str) -> Result<Vec<u8>, Error> {
-    value.to_xdr(Limits::none()).map_err(|e| Error::XdrDecoding {
-        entry_index: None,
-        byte_offset: None,
-        details: format!("Failed to re-encode {what} for hashing: {e}"),
-        source: Some(Box::new(e)),
-    })
+    value
+        .to_xdr(Limits::none())
+        .map_err(|e| Error::XdrDecoding {
+            entry_index: None,
+            byte_offset: None,
+            details: format!("Failed to re-encode {what} for hashing: {e}"),
+            source: Some(Box::new(e)),
+        })
 }
 
 /// Compute the manifest digest for a single entry at `index`.
@@ -342,7 +346,10 @@ pub fn verify_snapshot(
     let mut by_index: BTreeMap<usize, &SnapshotEntryDigest> = BTreeMap::new();
     for digest in &manifest.entries {
         if !seen_indices.insert(digest.index) {
-            issues.push(format!("Manifest index {} is declared more than once", digest.index));
+            issues.push(format!(
+                "Manifest index {} is declared more than once",
+                digest.index
+            ));
         }
         if !seen_manifest_hashes.insert(digest.sha256.clone()) {
             issues.push(format!(
@@ -354,7 +361,9 @@ pub fn verify_snapshot(
     }
     for i in 0..manifest.entries.len() {
         if !by_index.contains_key(&i) {
-            issues.push(format!("Manifest is missing entry index {i} (ordering gap)"));
+            issues.push(format!(
+                "Manifest is missing entry index {i} (ordering gap)"
+            ));
         }
     }
 
@@ -485,11 +494,13 @@ fn decompress_gzip(raw: &[u8], path: &Path) -> Result<Vec<u8>, Error> {
     use std::io::Read;
     let mut decoder = flate2::read::GzDecoder::new(raw);
     let mut out = Vec::new();
-    decoder.read_to_end(&mut out).map_err(|e| Error::FileAccess {
-        path: path.to_path_buf(),
-        details: format!("Failed to decompress gzip-compressed snapshot: {e}"),
-        source: Some(Box::new(e)),
-    })?;
+    decoder
+        .read_to_end(&mut out)
+        .map_err(|e| Error::FileAccess {
+            path: path.to_path_buf(),
+            details: format!("Failed to decompress gzip-compressed snapshot: {e}"),
+            source: Some(Box::new(e)),
+        })?;
     Ok(out)
 }
 
@@ -516,7 +527,10 @@ fn looks_gzipped(path: &Path, raw: &[u8]) -> bool {
 pub fn read_snapshot_bytes(path: &Path) -> Result<Vec<u8>, Error> {
     if path.is_dir() {
         let manifest = crate::bundle::verify_bundle(path).map_err(|e| Error::Integrity {
-            details: format!("Bundle integrity check failed for '{}': {e}", path.display()),
+            details: format!(
+                "Bundle integrity check failed for '{}': {e}",
+                path.display()
+            ),
             source: None,
         })?;
 
@@ -575,7 +589,12 @@ mod tests {
         stellar_strkey::Contract([byte; 32]).to_string()
     }
 
-    fn entry(contract_byte: u8, key: ScVal, val: ScVal, durability: ContractDataDurability) -> ContractDataEntry {
+    fn entry(
+        contract_byte: u8,
+        key: ScVal,
+        val: ScVal,
+        durability: ContractDataDurability,
+    ) -> ContractDataEntry {
         ContractDataEntry {
             ext: ExtensionPoint::V0,
             contract: contract_address(contract_byte),
@@ -627,7 +646,8 @@ mod tests {
         let entries = sample_entries();
         let manifest = build_manifest(&sample_inputs(), &entries).unwrap();
 
-        let report = verify_snapshot(Some(&manifest), &entries, &ExpectedContext::default()).unwrap();
+        let report =
+            verify_snapshot(Some(&manifest), &entries, &ExpectedContext::default()).unwrap();
 
         assert_eq!(report.integrity, SnapshotIntegrity::Verified);
         assert_eq!(report.entries_verified, entries.len());
@@ -649,7 +669,10 @@ mod tests {
         assert_eq!(report.integrity, SnapshotIntegrity::Failed);
         assert!(report.entries_verified < tampered.len());
         assert!(
-            report.issues.iter().any(|i| i.contains("does not match the manifest")),
+            report
+                .issues
+                .iter()
+                .any(|i| i.contains("does not match the manifest")),
             "issues: {:?}",
             report.issues
         );
@@ -661,10 +684,14 @@ mod tests {
         let mut manifest = build_manifest(&sample_inputs(), &entries).unwrap();
         manifest.ledger_sequence = 999; // mutate without recomputing manifest_sha256
 
-        let report = verify_snapshot(Some(&manifest), &entries, &ExpectedContext::default()).unwrap();
+        let report =
+            verify_snapshot(Some(&manifest), &entries, &ExpectedContext::default()).unwrap();
 
         assert_eq!(report.integrity, SnapshotIntegrity::Failed);
-        assert!(report.issues.iter().any(|i| i.contains("self-hash mismatch")));
+        assert!(report
+            .issues
+            .iter()
+            .any(|i| i.contains("self-hash mismatch")));
     }
 
     #[test]
@@ -687,7 +714,11 @@ mod tests {
 
         assert_eq!(report.integrity, SnapshotIntegrity::Failed);
         assert!(
-            report.issues.iter().any(|i| i.contains("belongs to contract") || i.contains("does not match the manifest")),
+            report
+                .issues
+                .iter()
+                .any(|i| i.contains("belongs to contract")
+                    || i.contains("does not match the manifest")),
             "issues: {:?}",
             report.issues
         );
@@ -761,7 +792,10 @@ mod tests {
 
         assert_eq!(report.integrity, SnapshotIntegrity::Failed);
         assert!(
-            report.issues.iter().any(|i| i.contains("duplicates") || i.contains("not described by the manifest")),
+            report
+                .issues
+                .iter()
+                .any(|i| i.contains("duplicates") || i.contains("not described by the manifest")),
             "issues: {:?}",
             report.issues
         );
@@ -778,7 +812,8 @@ mod tests {
         // index-uniqueness check, so recompute it.
         manifest.manifest_sha256 = manifest_self_hash(&manifest).unwrap();
 
-        let report = verify_snapshot(Some(&manifest), &entries, &ExpectedContext::default()).unwrap();
+        let report =
+            verify_snapshot(Some(&manifest), &entries, &ExpectedContext::default()).unwrap();
 
         assert_eq!(report.integrity, SnapshotIntegrity::Failed);
         assert!(report

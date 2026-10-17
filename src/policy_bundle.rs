@@ -252,16 +252,17 @@ pub fn verify_bundle_envelope(
         });
     }
 
-    let payload = BASE64.decode(&envelope.payload).map_err(|e| Error::Integrity {
-        details: format!("Policy bundle payload is not valid base64: {e}"),
-        source: None,
-    })?;
-
-    let bundle: PolicyBundle =
-        serde_json::from_slice(&payload).map_err(|e| Error::Integrity {
-            details: format!("Policy bundle payload does not match the expected schema: {e}"),
-            source: Some(Box::new(e)),
+    let payload = BASE64
+        .decode(&envelope.payload)
+        .map_err(|e| Error::Integrity {
+            details: format!("Policy bundle payload is not valid base64: {e}"),
+            source: None,
         })?;
+
+    let bundle: PolicyBundle = serde_json::from_slice(&payload).map_err(|e| Error::Integrity {
+        details: format!("Policy bundle payload does not match the expected schema: {e}"),
+        source: Some(Box::new(e)),
+    })?;
 
     if bundle.canonical_bytes().ok().as_deref() != Some(payload.as_slice()) {
         failures.push(BundleFailure {
@@ -634,7 +635,9 @@ mod tests {
         }]);
         let err = serde_json::from_value::<PolicyBundle>(value)
             .expect_err("a bundle payload with a 'suppress' field must not deserialize");
-        assert!(format!("{err}").contains("suppress") || format!("{err}").contains("unknown field"));
+        assert!(
+            format!("{err}").contains("suppress") || format!("{err}").contains("unknown field")
+        );
     }
 
     #[test]
@@ -686,14 +689,20 @@ mod tests {
         suppressions.require_reason.axes = vec![CompatibilityAxis::CallAbi];
 
         let mut bundle = sample_bundle();
-        bundle.require_reason.rule_ids = vec!["struct_field_removed".to_string(), "function_removed".to_string()];
+        bundle.require_reason.rule_ids = vec![
+            "struct_field_removed".to_string(),
+            "function_removed".to_string(),
+        ];
         bundle.require_reason.axes = vec![CompatibilityAxis::StorageLayout];
 
         apply_bundle_policy(&mut suppressions, &bundle);
 
         assert_eq!(
             suppressions.require_reason.rule_ids,
-            vec!["struct_field_removed".to_string(), "function_removed".to_string()]
+            vec![
+                "struct_field_removed".to_string(),
+                "function_removed".to_string()
+            ]
         );
         assert_eq!(
             suppressions.require_reason.axes,
@@ -717,9 +726,21 @@ mod tests {
         };
 
         let merged = merge_limits(&local, &bundle);
-        assert_eq!(merged.max_xdr_depth, Some(32), "bundle's tighter depth cap must win");
-        assert_eq!(merged.max_xdr_len, Some(4096), "bundle may set a cap local left unset");
-        assert_eq!(merged.max_entries, Some(1000), "local's tighter cap must win over a looser bundle value");
+        assert_eq!(
+            merged.max_xdr_depth,
+            Some(32),
+            "bundle's tighter depth cap must win"
+        );
+        assert_eq!(
+            merged.max_xdr_len,
+            Some(4096),
+            "bundle may set a cap local left unset"
+        );
+        assert_eq!(
+            merged.max_entries,
+            Some(1000),
+            "local's tighter cap must win over a looser bundle value"
+        );
         assert_eq!(merged.max_walk_depth, None);
     }
 }
