@@ -29,6 +29,7 @@ This folder contains comprehensive guides for using Soroban Upgrade Safeguard. S
 - [**protocol_policy.md**](protocol_policy.md) — Protocol-level policy configuration and enforcement
 - [**semver_policy.md**](semver_policy.md) — Semantic versioning policy guidance for contract upgrades
 - [**suppression_security_policy.md**](suppression_security_policy.md) — Security considerations and best practices for suppression rules
+- [**config_schema_compatibility.md**](config_schema_compatibility.md) — JSON Schemas for safeguard configuration and batch manifests, the editor completion catalog, and the schema compatibility policy
 
 ## Input Sources and Remote Fetching
 
@@ -59,6 +60,8 @@ This folder contains comprehensive guides for using Soroban Upgrade Safeguard. S
 
 - [**report_migrations.md**](report_migrations.md) — How to upgrade saved JSON reports to the latest schema version
 - [**report_schema_compatibility.md**](report_schema_compatibility.md) — Schema version history and compatibility policy
+- [**watch-status-file.md**](watch-status-file.md) — The JSON shape written by `--watch-status-file` and how to poll it
+- [**metrics.md**](metrics.md) — OpenMetrics names, types, and labels written by `--metrics-file`
 
 ## Advanced Features
 
