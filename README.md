@@ -1792,6 +1792,7 @@ More detailed guides live in the [docs](docs/) folder. See the [Documentation In
 - [Native Language Bindings](docs/bindings.md): Python (PyO3) and Node.js (napi-rs) bindings for the comparison engine — scope, installation, error/report conversion model, version compatibility, and current limitations.
 - [Impact Graph Export](docs/impact-graph.md): `--impact-graph`'s versioned node/edge graph of functions, types, storage, events, findings, and policy decisions — format, node/edge kind reference, resource limits, and an example Graphviz consumer.
 - [Signed Policy Bundles](docs/policy-bundles.md): `--policy-bundle`'s centrally governed, signed compatibility policy — trust model, verification, precedence rules (a bundle can only tighten, never loosen), and provenance.
+- [GitHub Action Examples](docs/github-action-examples.md): the reusable GitHub Action's inputs and outputs, required permissions, and four complete workflow examples covering PR comments and Checks API annotations.
 
 ## License
 
