@@ -29,6 +29,7 @@ This folder contains comprehensive guides for using Soroban Upgrade Safeguard. S
 - [**protocol_policy.md**](protocol_policy.md) — Protocol-level policy configuration and enforcement
 - [**semver_policy.md**](semver_policy.md) — Semantic versioning policy guidance for contract upgrades
 - [**suppression_security_policy.md**](suppression_security_policy.md) — Security considerations and best practices for suppression rules
+- [**config_schema_compatibility.md**](config_schema_compatibility.md) — JSON Schemas for safeguard configuration and batch manifests, the editor completion catalog, and the schema compatibility policy
 
 ## Input Sources and Remote Fetching
 
