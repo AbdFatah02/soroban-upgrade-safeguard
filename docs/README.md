@@ -60,6 +60,7 @@ This folder contains comprehensive guides for using Soroban Upgrade Safeguard. S
 
 - [**report_migrations.md**](report_migrations.md) — How to upgrade saved JSON reports to the latest schema version
 - [**report_schema_compatibility.md**](report_schema_compatibility.md) — Schema version history and compatibility policy
+- [**watch-status-file.md**](watch-status-file.md) — The JSON shape written by `--watch-status-file` and how to poll it
 
 ## Advanced Features
 
